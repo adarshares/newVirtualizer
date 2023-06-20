@@ -45,7 +45,7 @@ export const COLUMNS = [
     width: 150,
 
     displayName: "IP_Address",
-    fixed: true,
+    fixed: false,
     isReorderable: true,
   },
   {

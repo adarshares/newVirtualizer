@@ -1,5 +1,4 @@
 import React from "react";
-import { forwardRef } from "react";
 import { useRef } from "react";
 
 import VariableSizeGrid from "./../customChanges/VariableSizeGrid";
@@ -49,9 +48,11 @@ const Grid = () => {
           overflow: "scroll",
         }}
         onScroll={handleScroll}
+        role="presentation"
       >
         <div
           style={{ height: totalHeight, width: totalWidth, display: "flex" }}
+          role="presentation"
         >
           <div
             style={{
@@ -61,6 +62,9 @@ const Grid = () => {
               left: 0,
               zIndex: 15,
             }}
+            role="grid"
+            aria-rowcount={`${DATA.length + 1}`}
+            aria-colcount={`${fixedColumns.length}`}
           >
             {/* fixedHeader */}
             <FixedHeader fixedColumns={fixedColumns} />
@@ -98,6 +102,9 @@ const Grid = () => {
               height: totalHeight - rowHeight,
               width: widthOfFloatingPane,
             }}
+            role="grid"
+            aria-rowcount={`${DATA.length + 1}`}
+            aria-colcount={`${COLUMNS.length}`}
           >
             {/* floating header */}
             <VariableSizeList
@@ -118,6 +125,8 @@ const Grid = () => {
                 <FloatingHeaderCellRenderer
                   style={style}
                   displayName={floatingColumns[index].displayName}
+                  columnIndex={index}
+                  columnOffset={fixedColumns.length}
                 />
               )}
             </VariableSizeList>

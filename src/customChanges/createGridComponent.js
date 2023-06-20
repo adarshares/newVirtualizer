@@ -457,8 +457,6 @@ export default function createGridComponent({
                 key: itemKey({ columnIndex, data: itemData, rowIndex }),
                 rowIndex,
                 style: columnStyle,
-                role: "test",
-                "aria-colindex": `${columnIndex}`,
               })
             );
           }
@@ -470,7 +468,7 @@ export default function createGridComponent({
               key: `customkey ${rowIndex}`,
               style: rowStyle,
               role: "row",
-              "aria-rowindex": `${rowIndex}`,
+              "aria-rowindex": `${rowIndex + 1}`,
             })
           );
         }
@@ -493,9 +491,7 @@ export default function createGridComponent({
             direction,
             ...style,
           },
-          role: "grid",
-          "aria-rowcount": `${rowCount}`,
-          "aria-colcount": `${columnCount}`,
+          role: "presentation",
         },
         createElement(innerElementType || innerTagName || "div", {
           children: items,
@@ -505,8 +501,7 @@ export default function createGridComponent({
             pointerEvents: isScrolling ? "none" : undefined,
             width: estimatedTotalWidth,
           },
-          role: "rowgroup",
-          "aria-colcount": `${columnCount}`,
+          role: "presentation",
         })
       );
     }

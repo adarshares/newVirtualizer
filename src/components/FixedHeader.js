@@ -11,6 +11,8 @@ const FixedHeader = ({ fixedColumns }) => {
         backgroundColor: "white",
         display: "flex",
       }}
+      role="row"
+      aria-rowindex={0}
     >
       {fixedColumns.map((item, index) => {
         return (
@@ -23,12 +25,17 @@ const FixedHeader = ({ fixedColumns }) => {
               backgroundColor: "rgba(73, 182, 255, 1)",
               borderRight: "1px solid rgba(134, 153, 166, 0.8)",
               borderBottom: "1px solid rgba(134, 153, 166, 0.8)",
+              boxSizing: "border-box",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
               textOverflow: "ellipsis",
               overflow: "hidden",
             }}
+            role="columnheader"
+            aria-colindex={index}
+            aria-rowindex={0}
+            tabIndex={0}
           >
             {item.displayName}
           </div>

@@ -14,16 +14,17 @@ const GridCellRenderer = ({
         ...style,
         borderRight: "1px solid rgba(134, 153, 166, 0.8)",
         borderBottom: "1px solid rgba(134, 153, 166, 0.8)",
+        boxSizing: "border-box",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         textOverflow: "ellipsis",
         overflow: "hidden",
       }}
-      //aria-colindex="1"
       role="gridcell"
       aria-colindex={columnIndex + columnOffset}
-      aria-rowindex={rowIndex}
+      aria-rowindex={`${rowIndex + 1}`}
+      tabIndex={rowIndex + 1}
     >
       {DATA[rowIndex][columnKey]}
     </div>

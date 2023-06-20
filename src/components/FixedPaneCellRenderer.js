@@ -1,12 +1,6 @@
 import React from "react";
 import { DATA } from "./../constants/data";
 
-/*
-rowIndex={index}
-                style={style}
-                floatingColumns={floatingColumns}
-              />
-*/
 const FixedPaneCellRenderer = ({ rowIndex, style, fixedColumns }) => {
   return (
     <div
@@ -17,6 +11,8 @@ const FixedPaneCellRenderer = ({ rowIndex, style, fixedColumns }) => {
         zIndex: 10,
         backgroundColor: "white",
       }}
+      role="row"
+      aria-rowindex={rowIndex + 1}
     >
       {fixedColumns.map((item, index) => {
         return (
@@ -31,8 +27,13 @@ const FixedPaneCellRenderer = ({ rowIndex, style, fixedColumns }) => {
               textOverflow: "ellipsis",
               overflow: "hidden",
               borderRight: "1px solid rgba(134, 153, 166, 0.8)",
-              borderTop: "1px solid rgba(134, 153, 166, 0.8)",
+              borderBottom: "1px solid rgba(134, 153, 166, 0.8)",
+              boxSizing: "border-box",
             }}
+            role="columnheader"
+            aria-colindex={index}
+            aria-rowindex={rowIndex + 1}
+            tabIndex={rowIndex + 1}
           >
             {DATA[rowIndex][item.columnKey]}
           </div>

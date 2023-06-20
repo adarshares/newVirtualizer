@@ -1,24 +1,31 @@
 import React from "react";
 
-const FloatingHeaderCellRenderer = ({ displayName, style }) => {
+const FloatingHeaderCellRenderer = ({
+  displayName,
+  style,
+  columnIndex,
+  columnOffset,
+}) => {
   return (
     <div
       style={{
         ...style,
         backgroundColor: "rgba(179, 225, 255, 1)",
         zIndex: 5,
-        // height: style.height - 1,
-        //width: style.width - 0.45,
-        borderLeft: "1px solid rgba(134, 153, 166, 0.8)",
+        borderRight: "1px solid rgba(134, 153, 166, 0.8)",
         borderBottom: "1px solid rgba(134, 153, 166, 0.8)",
+        boxSizing: "border-box",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         textOverflow: "ellipsis",
         overflow: "hidden",
       }}
+      role="columnheader"
+      aria-rowindex={0}
+      aria-colindex={columnIndex + columnOffset}
+      tabIndex={0}
     >
-      {console.log(style.height, style.width)}
       {displayName}
     </div>
   );
