@@ -138,6 +138,8 @@ const Grid = () => {
                   columnKey={floatingColumns[columnIndex].columnKey}
                   rowIndex={rowIndex}
                   style={style}
+                  columnIndex={columnIndex}
+                  columnOffset={fixedColumns.length}
                 />
               )}
             </VariableSizeGrid>

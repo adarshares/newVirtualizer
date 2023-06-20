@@ -13,7 +13,7 @@ export const COLUMNS = [
     width: 150,
 
     displayName: "First Name",
-    fixed: false,
+    fixed: true,
     isReorderable: true,
   },
   {
@@ -29,7 +29,7 @@ export const COLUMNS = [
     width: 150,
 
     displayName: "Email",
-    fixed: false,
+    fixed: true,
     isReorderable: true,
   },
   {
@@ -45,7 +45,7 @@ export const COLUMNS = [
     width: 150,
 
     displayName: "IP_Address",
-    fixed: false,
+    fixed: true,
     isReorderable: true,
   },
   {

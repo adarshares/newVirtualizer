@@ -457,20 +457,25 @@ export default function createGridComponent({
                 key: itemKey({ columnIndex, data: itemData, rowIndex }),
                 rowIndex,
                 style: columnStyle,
+                role: "test",
+                "aria-colindex": `${columnIndex}`,
               })
             );
           }
           items.push(
             createElement("div", {
               children: rows,
-              rowIndex,
-              isScrolling: useIsScrolling ? isScrolling : undefined,
+              //rowIndex,
+              //isScrolling: useIsScrolling ? isScrolling : undefined,
               key: `customkey ${rowIndex}`,
               style: rowStyle,
+              role: "row",
+              "aria-rowindex": `${rowIndex}`,
             })
           );
         }
       }
+      console.log(children);
 
       return createElement(
         outerElementType || outerTagName || "div",
@@ -488,6 +493,9 @@ export default function createGridComponent({
             direction,
             ...style,
           },
+          role: "grid",
+          "aria-rowcount": `${rowCount}`,
+          "aria-colcount": `${columnCount}`,
         },
         createElement(innerElementType || innerTagName || "div", {
           children: items,
@@ -497,6 +505,8 @@ export default function createGridComponent({
             pointerEvents: isScrolling ? "none" : undefined,
             width: estimatedTotalWidth,
           },
+          role: "rowgroup",
+          "aria-colcount": `${columnCount}`,
         })
       );
     }

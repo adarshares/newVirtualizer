@@ -9,6 +9,7 @@ const FixedHeader = ({ fixedColumns }) => {
         position: "sticky",
         top: 0,
         backgroundColor: "white",
+        display: "flex",
       }}
     >
       {fixedColumns.map((item, index) => {

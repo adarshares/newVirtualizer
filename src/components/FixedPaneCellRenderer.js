@@ -16,8 +16,6 @@ const FixedPaneCellRenderer = ({ rowIndex, style, fixedColumns }) => {
         flexDirection: "row",
         zIndex: 10,
         backgroundColor: "white",
-        borderRight: "1px solid rgba(134, 153, 166, 0.8)",
-        borderTop: "1px solid rgba(134, 153, 166, 0.8)",
       }}
     >
       {fixedColumns.map((item, index) => {
@@ -32,6 +30,8 @@ const FixedPaneCellRenderer = ({ rowIndex, style, fixedColumns }) => {
               alignItems: "center",
               textOverflow: "ellipsis",
               overflow: "hidden",
+              borderRight: "1px solid rgba(134, 153, 166, 0.8)",
+              borderTop: "1px solid rgba(134, 153, 166, 0.8)",
             }}
           >
             {DATA[rowIndex][item.columnKey]}
