@@ -10,10 +10,13 @@ import FixedPaneCellRenderer from "./../components/FixedPaneCellRenderer";
 import GridCellRenderer from "./GridCellRenderer";
 import FloatingHeaderCellRenderer from "./FloatingHeaderCellRenderer";
 import FixedHeader from "./FixedHeader";
+import FixedPane from "./FixedPane";
+import FloatingHeader from "./FloatingHeader";
+import FloatingPane from "./FloatingPane";
 
 const Grid = () => {
   const refFixedPane = useRef();
-  const refGrid = useRef();
+  const refFloatingPane = useRef();
   const refFloatingHeader = useRef();
 
   const fixedColumns = COLUMNS.filter((item) => item.fixed);
@@ -33,7 +36,7 @@ const Grid = () => {
   const handleScroll = (event) => {
     refFixedPane.current.scrollTo(event.target.scrollTop);
     refFloatingHeader.current.scrollTo(event.target.scrollLeft);
-    refGrid.current.scrollTo({
+    refFloatingPane.current.scrollTo({
       scrollLeft: event.target.scrollLeft,
       scrollTop: event.target.scrollTop,
     });
@@ -68,33 +71,14 @@ const Grid = () => {
           >
             {/* fixedHeader */}
             <FixedHeader fixedColumns={fixedColumns} />
-
             {/* fixedpane */}
-            <VariableSizeList
-              height={500}
-              itemCount={DATA.length}
-              itemSize={() => rowHeight}
+            <FixedPane
+              DATA={DATA}
+              rowHeight={rowHeight}
+              widthOfFixedPane={widthOfFixedPane}
+              fixedColumns={fixedColumns}
               ref={refFixedPane}
-              width={widthOfFixedPane}
-              style={{
-                overflow: "visible",
-                position: "relative",
-                backgroundColor: "white",
-                zIndex: 10,
-              }}
-            >
-              {({ index, style }) => (
-                <FixedPaneCellRenderer
-                  rowIndex={index}
-                  style={{
-                    ...style,
-                    height: rowHeight,
-                    width: widthOfFixedPane,
-                  }}
-                  fixedColumns={fixedColumns}
-                />
-              )}
-            </VariableSizeList>
+            />
           </div>
 
           <div
@@ -107,51 +91,19 @@ const Grid = () => {
             aria-colcount={`${COLUMNS.length}`}
           >
             {/* floating header */}
-            <VariableSizeList
-              height={rowHeight}
-              itemCount={floatingColumns.length}
+            <FloatingHeader
+              rowHeight={rowHeight}
+              floatingColumns={floatingColumns}
+              fixedColumns={fixedColumns}
               ref={refFloatingHeader}
-              width={500}
-              itemSize={(index) => floatingColumns[index].width}
-              layout={"horizontal"}
-              style={{
-                overflow: "visible",
-                position: "sticky",
-                top: 0,
-                zIndex: 5,
-              }}
-            >
-              {({ index, style }) => (
-                <FloatingHeaderCellRenderer
-                  style={style}
-                  displayName={floatingColumns[index].displayName}
-                  columnIndex={index}
-                  columnOffset={fixedColumns.length}
-                />
-              )}
-            </VariableSizeList>
-
+            />
             {/* floating columns grid */}
-            <VariableSizeGrid
-              columnCount={floatingColumns.length}
-              columnWidth={(index) => floatingColumns[index].width}
-              height={500}
-              rowCount={DATA.length}
-              rowHeight={(index) => 50}
-              width={500}
-              ref={refGrid}
-              style={{ position: "relative", overflow: "visible" }}
-            >
-              {({ columnIndex, rowIndex, style }) => (
-                <GridCellRenderer
-                  columnKey={floatingColumns[columnIndex].columnKey}
-                  rowIndex={rowIndex}
-                  style={style}
-                  columnIndex={columnIndex}
-                  columnOffset={fixedColumns.length}
-                />
-              )}
-            </VariableSizeGrid>
+            <FloatingPane
+              floatingColumns={floatingColumns}
+              DATA={DATA}
+              fixedColumns={fixedColumns}
+              ref={refFloatingPane}
+            />
           </div>
         </div>
       </div>

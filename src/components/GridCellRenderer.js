@@ -1,5 +1,4 @@
 import React from "react";
-import { DATA } from "../constants/data";
 
 const GridCellRenderer = ({
   columnKey,
@@ -7,6 +6,7 @@ const GridCellRenderer = ({
   style,
   columnIndex,
   columnOffset,
+  DATA,
 }) => {
   return (
     <div

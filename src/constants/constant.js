@@ -21,15 +21,15 @@ export const COLUMNS = [
     width: 150,
 
     displayName: "Last Name",
-    fixed: false,
+    fixed: true,
     isReorderable: true,
   },
   {
     columnKey: "email",
-    width: 150,
+    width: 250,
 
     displayName: "Email",
-    fixed: true,
+    fixed: false,
     isReorderable: true,
   },
   {

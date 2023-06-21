@@ -1,7 +1,6 @@
 import React from "react";
-import { DATA } from "./../constants/data";
 
-const FixedPaneCellRenderer = ({ rowIndex, style, fixedColumns }) => {
+const FixedPaneCellRenderer = ({ rowIndex, style, fixedColumns, DATA }) => {
   return (
     <div
       style={{
