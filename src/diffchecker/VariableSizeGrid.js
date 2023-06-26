@@ -1,12 +1,37 @@
 // @flow
 
-import createGridComponent from "./createGridComponent";
+import createGridComponent from './createGridComponent';
+
+import type { Props, ScrollToAlign } from './createGridComponent';
 
 const DEFAULT_ESTIMATED_ITEM_SIZE = 50;
 
+type VariableSizeProps = {|
+  estimatedColumnWidth: number,
+  estimatedRowHeight: number,
+  ...Props<any>,
+|};
+
+type itemSizeGetter = (index: number) => number;
+type ItemType = 'column' | 'row';
+
+type ItemMetadata = {|
+  offset: number,
+  size: number,
+|};
+type ItemMetadataMap = { [index: number]: ItemMetadata };
+type InstanceProps = {|
+  columnMetadataMap: ItemMetadataMap,
+  estimatedColumnWidth: number,
+  estimatedRowHeight: number,
+  lastMeasuredColumnIndex: number,
+  lastMeasuredRowIndex: number,
+  rowMetadataMap: ItemMetadataMap,
+|};
+
 const getEstimatedTotalHeight = (
-  { rowCount },
-  { rowMetadataMap, estimatedRowHeight, lastMeasuredRowIndex }
+  { rowCount }: Props<any>,
+  { rowMetadataMap, estimatedRowHeight, lastMeasuredRowIndex }: InstanceProps
 ) => {
   let totalSizeOfMeasuredRows = 0;
 
@@ -28,8 +53,12 @@ const getEstimatedTotalHeight = (
 };
 
 const getEstimatedTotalWidth = (
-  { columnCount },
-  { columnMetadataMap, estimatedColumnWidth, lastMeasuredColumnIndex }
+  { columnCount }: Props<any>,
+  {
+    columnMetadataMap,
+    estimatedColumnWidth,
+    lastMeasuredColumnIndex,
+  }: InstanceProps
 ) => {
   let totalSizeOfMeasuredRows = 0;
 
@@ -50,15 +79,20 @@ const getEstimatedTotalWidth = (
   return totalSizeOfMeasuredRows + totalSizeOfUnmeasuredItems;
 };
 
-const getItemMetadata = (itemType, props, index, instanceProps) => {
+const getItemMetadata = (
+  itemType: ItemType,
+  props: Props<any>,
+  index: number,
+  instanceProps: InstanceProps
+): ItemMetadata => {
   let itemMetadataMap, itemSize, lastMeasuredIndex;
-  if (itemType === "column") {
+  if (itemType === 'column') {
     itemMetadataMap = instanceProps.columnMetadataMap;
-    itemSize = props.columnWidth;
+    itemSize = ((props.columnWidth: any): itemSizeGetter);
     lastMeasuredIndex = instanceProps.lastMeasuredColumnIndex;
   } else {
     itemMetadataMap = instanceProps.rowMetadataMap;
-    itemSize = props.rowHeight;
+    itemSize = ((props.rowHeight: any): itemSizeGetter);
     lastMeasuredIndex = instanceProps.lastMeasuredRowIndex;
   }
 
@@ -80,7 +114,7 @@ const getItemMetadata = (itemType, props, index, instanceProps) => {
       offset += size;
     }
 
-    if (itemType === "column") {
+    if (itemType === 'column') {
       instanceProps.lastMeasuredColumnIndex = index;
     } else {
       instanceProps.lastMeasuredRowIndex = index;
@@ -90,9 +124,14 @@ const getItemMetadata = (itemType, props, index, instanceProps) => {
   return itemMetadataMap[index];
 };
 
-const findNearestItem = (itemType, props, instanceProps, offset) => {
+const findNearestItem = (
+  itemType: ItemType,
+  props: Props<any>,
+  instanceProps: InstanceProps,
+  offset: number
+) => {
   let itemMetadataMap, lastMeasuredIndex;
-  if (itemType === "column") {
+  if (itemType === 'column') {
     itemMetadataMap = instanceProps.columnMetadataMap;
     lastMeasuredIndex = instanceProps.lastMeasuredColumnIndex;
   } else {
@@ -128,13 +167,13 @@ const findNearestItem = (itemType, props, instanceProps, offset) => {
 };
 
 const findNearestItemBinarySearch = (
-  itemType,
-  props,
-  instanceProps,
-  high,
-  low,
-  offset
-) => {
+  itemType: ItemType,
+  props: Props<any>,
+  instanceProps: InstanceProps,
+  high: number,
+  low: number,
+  offset: number
+): number => {
   while (low <= high) {
     const middle = low + Math.floor((high - low) / 2);
     const currentOffset = getItemMetadata(
@@ -161,13 +200,13 @@ const findNearestItemBinarySearch = (
 };
 
 const findNearestItemExponentialSearch = (
-  itemType,
-  props,
-  instanceProps,
-  index,
-  offset
-) => {
-  const itemCount = itemType === "column" ? props.columnCount : props.rowCount;
+  itemType: ItemType,
+  props: Props<any>,
+  instanceProps: InstanceProps,
+  index: number,
+  offset: number
+): number => {
+  const itemCount = itemType === 'column' ? props.columnCount : props.rowCount;
   let interval = 1;
 
   while (
@@ -189,21 +228,21 @@ const findNearestItemExponentialSearch = (
 };
 
 const getOffsetForIndexAndAlignment = (
-  itemType,
-  props,
-  index,
-  align,
-  scrollOffset,
-  instanceProps,
-  scrollbarSize
-) => {
-  const size = itemType === "column" ? props.width : props.height;
+  itemType: ItemType,
+  props: Props<any>,
+  index: number,
+  align: ScrollToAlign,
+  scrollOffset: number,
+  instanceProps: InstanceProps,
+  scrollbarSize: number
+): number => {
+  const size = itemType === 'column' ? props.width : props.height;
   const itemMetadata = getItemMetadata(itemType, props, index, instanceProps);
 
   // Get estimated total size after ItemMetadata is computed,
   // To ensure it reflects actual measurements instead of just estimates.
   const estimatedTotalSize =
-    itemType === "column"
+    itemType === 'column'
       ? getEstimatedTotalWidth(props, instanceProps)
       : getEstimatedTotalHeight(props, instanceProps);
 
@@ -216,22 +255,22 @@ const getOffsetForIndexAndAlignment = (
     itemMetadata.offset - size + scrollbarSize + itemMetadata.size
   );
 
-  if (align === "smart") {
+  if (align === 'smart') {
     if (scrollOffset >= minOffset - size && scrollOffset <= maxOffset + size) {
-      align = "auto";
+      align = 'auto';
     } else {
-      align = "center";
+      align = 'center';
     }
   }
 
   switch (align) {
-    case "start":
+    case 'start':
       return maxOffset;
-    case "end":
+    case 'end':
       return minOffset;
-    case "center":
+    case 'center':
       return Math.round(minOffset + (maxOffset - minOffset) / 2);
-    case "auto":
+    case 'auto':
     default:
       if (scrollOffset >= minOffset && scrollOffset <= maxOffset) {
         return scrollOffset;
@@ -248,22 +287,28 @@ const getOffsetForIndexAndAlignment = (
 };
 
 const VariableSizeGrid = createGridComponent({
-  getColumnOffset: (props, index, instanceProps) =>
-    getItemMetadata("column", props, index, instanceProps).offset,
+  getColumnOffset: (
+    props: Props<any>,
+    index: number,
+    instanceProps: InstanceProps
+  ): number => getItemMetadata('column', props, index, instanceProps).offset,
 
-  getColumnStartIndexForOffset: (props, scrollLeft, instanceProps) =>
-    findNearestItem("column", props, instanceProps, scrollLeft),
+  getColumnStartIndexForOffset: (
+    props: Props<any>,
+    scrollLeft: number,
+    instanceProps: InstanceProps
+  ): number => findNearestItem('column', props, instanceProps, scrollLeft),
 
   getColumnStopIndexForStartIndex: (
-    props,
-    startIndex,
-    scrollLeft,
-    instanceProps
-  ) => {
+    props: Props<any>,
+    startIndex: number,
+    scrollLeft: number,
+    instanceProps: InstanceProps
+  ): number => {
     const { columnCount, width } = props;
 
     const itemMetadata = getItemMetadata(
-      "column",
+      'column',
       props,
       startIndex,
       instanceProps
@@ -275,28 +320,31 @@ const VariableSizeGrid = createGridComponent({
 
     while (stopIndex < columnCount - 1 && offset < maxOffset) {
       stopIndex++;
-      offset += getItemMetadata("column", props, stopIndex, instanceProps).size;
+      offset += getItemMetadata('column', props, stopIndex, instanceProps).size;
     }
 
     return stopIndex;
   },
 
-  getColumnWidth: (props, index, instanceProps) =>
-    instanceProps.columnMetadataMap[index].size,
+  getColumnWidth: (
+    props: Props<any>,
+    index: number,
+    instanceProps: InstanceProps
+  ): number => instanceProps.columnMetadataMap[index].size,
 
   getEstimatedTotalHeight,
   getEstimatedTotalWidth,
 
   getOffsetForColumnAndAlignment: (
-    props,
-    index,
-    align,
-    scrollOffset,
-    instanceProps,
-    scrollbarSize
-  ) =>
+    props: Props<any>,
+    index: number,
+    align: ScrollToAlign,
+    scrollOffset: number,
+    instanceProps: InstanceProps,
+    scrollbarSize: number
+  ): number =>
     getOffsetForIndexAndAlignment(
-      "column",
+      'column',
       props,
       index,
       align,
@@ -306,15 +354,15 @@ const VariableSizeGrid = createGridComponent({
     ),
 
   getOffsetForRowAndAlignment: (
-    props,
-    index,
-    align,
-    scrollOffset,
-    instanceProps,
-    scrollbarSize
-  ) =>
+    props: Props<any>,
+    index: number,
+    align: ScrollToAlign,
+    scrollOffset: number,
+    instanceProps: InstanceProps,
+    scrollbarSize: number
+  ): number =>
     getOffsetForIndexAndAlignment(
-      "row",
+      'row',
       props,
       index,
       align,
@@ -323,25 +371,34 @@ const VariableSizeGrid = createGridComponent({
       scrollbarSize
     ),
 
-  getRowOffset: (props, index, instanceProps) =>
-    getItemMetadata("row", props, index, instanceProps).offset,
+  getRowOffset: (
+    props: Props<any>,
+    index: number,
+    instanceProps: InstanceProps
+  ): number => getItemMetadata('row', props, index, instanceProps).offset,
 
-  getRowHeight: (props, index, instanceProps) =>
-    instanceProps.rowMetadataMap[index].size,
+  getRowHeight: (
+    props: Props<any>,
+    index: number,
+    instanceProps: InstanceProps
+  ): number => instanceProps.rowMetadataMap[index].size,
 
-  getRowStartIndexForOffset: (props, scrollTop, instanceProps) =>
-    findNearestItem("row", props, instanceProps, scrollTop),
+  getRowStartIndexForOffset: (
+    props: Props<any>,
+    scrollTop: number,
+    instanceProps: InstanceProps
+  ): number => findNearestItem('row', props, instanceProps, scrollTop),
 
   getRowStopIndexForStartIndex: (
-    props,
-    startIndex,
-    scrollTop,
-    instanceProps
-  ) => {
+    props: Props<any>,
+    startIndex: number,
+    scrollTop: number,
+    instanceProps: InstanceProps
+  ): number => {
     const { rowCount, height } = props;
 
     const itemMetadata = getItemMetadata(
-      "row",
+      'row',
       props,
       startIndex,
       instanceProps
@@ -353,14 +410,17 @@ const VariableSizeGrid = createGridComponent({
 
     while (stopIndex < rowCount - 1 && offset < maxOffset) {
       stopIndex++;
-      offset += getItemMetadata("row", props, stopIndex, instanceProps).size;
+      offset += getItemMetadata('row', props, stopIndex, instanceProps).size;
     }
 
     return stopIndex;
   },
 
-  initInstanceProps(props, instance) {
-    const { estimatedColumnWidth, estimatedRowHeight } = props;
+  initInstanceProps(props: Props<any>, instance: any): InstanceProps {
+    const {
+      estimatedColumnWidth,
+      estimatedRowHeight,
+    } = ((props: any): VariableSizeProps);
 
     const instanceProps = {
       columnMetadataMap: {},
@@ -372,13 +432,16 @@ const VariableSizeGrid = createGridComponent({
     };
 
     instance.resetAfterColumnIndex = (
-      columnIndex,
-      shouldForceUpdate = true
+      columnIndex: number,
+      shouldForceUpdate?: boolean = true
     ) => {
       instance.resetAfterIndices({ columnIndex, shouldForceUpdate });
     };
 
-    instance.resetAfterRowIndex = (rowIndex, shouldForceUpdate = true) => {
+    instance.resetAfterRowIndex = (
+      rowIndex: number,
+      shouldForceUpdate?: boolean = true
+    ) => {
       instance.resetAfterIndices({ rowIndex, shouldForceUpdate });
     };
 
@@ -386,14 +449,18 @@ const VariableSizeGrid = createGridComponent({
       columnIndex,
       rowIndex,
       shouldForceUpdate = true,
+    }: {
+      columnIndex?: number,
+      rowIndex?: number,
+      shouldForceUpdate: boolean,
     }) => {
-      if (typeof columnIndex === "number") {
+      if (typeof columnIndex === 'number') {
         instanceProps.lastMeasuredColumnIndex = Math.min(
           instanceProps.lastMeasuredColumnIndex,
           columnIndex - 1
         );
       }
-      if (typeof rowIndex === "number") {
+      if (typeof rowIndex === 'number') {
         instanceProps.lastMeasuredRowIndex = Math.min(
           instanceProps.lastMeasuredRowIndex,
           rowIndex - 1
@@ -416,21 +483,21 @@ const VariableSizeGrid = createGridComponent({
 
   shouldResetStyleCacheOnItemSizeChange: false,
 
-  validateProps: ({ columnWidth, rowHeight }) => {
-    if (process.env.NODE_ENV !== "production") {
-      if (typeof columnWidth !== "function") {
+  validateProps: ({ columnWidth, rowHeight }: Props<any>): void => {
+    if (process.env.NODE_ENV !== 'production') {
+      if (typeof columnWidth !== 'function') {
         throw Error(
           'An invalid "columnWidth" prop has been specified. ' +
-            "Value should be a function. " +
+            'Value should be a function. ' +
             `"${
-              columnWidth === null ? "null" : typeof columnWidth
+              columnWidth === null ? 'null' : typeof columnWidth
             }" was specified.`
         );
-      } else if (typeof rowHeight !== "function") {
+      } else if (typeof rowHeight !== 'function') {
         throw Error(
           'An invalid "rowHeight" prop has been specified. ' +
-            "Value should be a function. " +
-            `"${rowHeight === null ? "null" : typeof rowHeight}" was specified.`
+            'Value should be a function. ' +
+            `"${rowHeight === null ? 'null' : typeof rowHeight}" was specified.`
         );
       }
     }

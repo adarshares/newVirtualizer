@@ -4,17 +4,21 @@
 // Inspired by Joe Lambert, https://gist.github.com/joelambert/1002116#file-requesttimeout-js
 
 const hasNativePerformanceNow =
-  typeof performance === "object" && typeof performance.now === "function";
+  typeof performance === 'object' && typeof performance.now === 'function';
 
 const now = hasNativePerformanceNow
   ? () => performance.now()
   : () => Date.now();
 
-export function cancelTimeout(timeoutID) {
+export type TimeoutID = {|
+  id: AnimationFrameID,
+|};
+
+export function cancelTimeout(timeoutID: TimeoutID) {
   cancelAnimationFrame(timeoutID.id);
 }
 
-export function requestTimeout(callback, delay) {
+export function requestTimeout(callback: Function, delay: number): TimeoutID {
   const start = now();
 
   function tick() {
@@ -25,7 +29,7 @@ export function requestTimeout(callback, delay) {
     }
   }
 
-  const timeoutID = {
+  const timeoutID: TimeoutID = {
     id: requestAnimationFrame(tick),
   };
 
