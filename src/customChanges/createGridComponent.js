@@ -44,6 +44,9 @@ export default function createGridComponent({
     _instanceProps = initInstanceProps(this.props, this);
     _resetIsScrollingTimeoutId = null;
     _outerRef;
+    _cellCache = new Map(); // {};
+    _cellStyleCache = new Map(); // {};
+    _rowStyleCache = new Map(); // {};
 
     static defaultProps = {
       direction: "ltr",
@@ -104,6 +107,7 @@ export default function createGridComponent({
         }
 
         return {
+          isScrolling: true,
           horizontalScrollDirection:
             prevState.scrollLeft < scrollLeft ? "forward" : "backward",
           scrollLeft: scrollLeft,
@@ -244,7 +248,6 @@ export default function createGridComponent({
         width,
       } = this.props;
       const { isScrolling } = this.state;
-
       const [columnStartIndex, columnStopIndex] =
         this._getHorizontalRangeToRender();
       const [rowStartIndex, rowStopIndex] = this._getVerticalRangeToRender();
@@ -268,50 +271,31 @@ export default function createGridComponent({
           rowIndex++
         ) {
           const rows = [];
-          let rowStyle = { ...this._getItemStyle(rowIndex, columnStopIndex) };
-          delete rowStyle["left"];
-          delete rowStyle["right"];
-          rowStyle["width"] = estimatedTotalWidth;
-          //console.log(rowStyle);
           for (
             let columnIndex = columnStartIndex;
             columnIndex <= columnStopIndex;
             columnIndex++
           ) {
-            const columnStyle = this._getItemStyle(rowIndex, columnIndex);
-            delete columnStyle["top"];
-            //columnStyle["height"] = "100%";
-            rows.push(
-              createElement(children, {
-                columnIndex,
-                data: itemData,
-                isScrolling: useIsScrolling ? isScrolling : undefined,
-                key: itemKey({ columnIndex, data: itemData, rowIndex }),
-                rowIndex,
-                style: columnStyle,
-              })
-            );
+            rows.push(this._getCell(rowIndex, columnIndex, isScrolling));
           }
           items.push(
             createElement("div", {
               children: rows,
-              //rowIndex,
-              //isScrolling: useIsScrolling ? isScrolling : undefined,
-              key: `customkey ${rowIndex}`,
-              style: rowStyle,
+              rowIndex,
+              key: `${rowIndex}`,
+              style: this._getRowStyle(rowIndex, isScrolling),
               role: "row",
               "aria-rowindex": `${rowIndex + 1}`,
             })
           );
         }
       }
-      console.log(children);
+      //console.log("scrollTo", "createelement called");
 
       return createElement(
         outerElementType || outerTagName || "div",
         {
           className,
-          onScroll: this._onScroll,
           ref: this._outerRefSetter,
           style: {
             position: "relative",
@@ -350,6 +334,8 @@ export default function createGridComponent({
         visibleRowStopIndex
       ) =>
         this.props.onItemsRendered({
+          rowStartIndex: overscanRowStartIndex,
+          rowStopIndex: overscanColumnStartIndex,
           overscanColumnStartIndex,
           overscanColumnStopIndex,
           overscanRowStartIndex,
@@ -361,25 +347,8 @@ export default function createGridComponent({
         })
     );
 
-    _callOnScroll = memoizeOne(
-      (
-        scrollLeft,
-        scrollTop,
-        horizontalScrollDirection,
-        verticalScrollDirection,
-        scrollUpdateWasRequested
-      ) =>
-        this.props.onScroll({
-          horizontalScrollDirection,
-          scrollLeft,
-          scrollTop,
-          verticalScrollDirection,
-          scrollUpdateWasRequested,
-        })
-    );
-
     _callPropsCallbacks() {
-      const { columnCount, onItemsRendered, onScroll, rowCount } = this.props;
+      const { columnCount, onItemsRendered, rowCount } = this.props;
 
       if (typeof onItemsRendered === "function") {
         if (columnCount > 0 && rowCount > 0) {
@@ -407,64 +376,79 @@ export default function createGridComponent({
           );
         }
       }
-
-      if (typeof onScroll === "function") {
-        const {
-          horizontalScrollDirection,
-          scrollLeft,
-          scrollTop,
-          scrollUpdateWasRequested,
-          verticalScrollDirection,
-        } = this.state;
-        this._callOnScroll(
-          scrollLeft,
-          scrollTop,
-          horizontalScrollDirection,
-          verticalScrollDirection,
-          scrollUpdateWasRequested
-        );
-      }
     }
 
     // Lazily create and cache item styles while scrolling,
     // So that pure component sCU will prevent re-renders.
     // We maintain this cache, and pass a style prop rather than index,
     // So that List can clear cached styles and force item re-render if necessary.
-    _getItemStyle = (rowIndex, columnIndex) => {
-      const { columnWidth, direction, rowHeight } = this.props;
-
-      const itemStyleCache = this._getItemStyleCache(
-        shouldResetStyleCacheOnItemSizeChange && columnWidth,
-        shouldResetStyleCacheOnItemSizeChange && direction,
-        shouldResetStyleCacheOnItemSizeChange && rowHeight
-      );
-
+    _getCell = (rowIndex, columnIndex, isScrolling) => {
       const key = `${rowIndex}:${columnIndex}`;
-
-      let style;
-      if (false && itemStyleCache.hasOwnProperty(key)) {
-        style = itemStyleCache[key];
-      } else {
+      if (!this._cellCache.has(key) || !isScrolling) {
+        const cellRenderer = this.props.children;
+        const cellStyle = this._getCellStyle(
+          rowIndex,
+          columnIndex,
+          isScrolling
+        );
+        const cell = createElement(cellRenderer, {
+          columnIndex,
+          rowIndex,
+          key,
+          style: cellStyle,
+        });
+        if (!isScrolling) {
+          return cell;
+        }
+        this._cellCache.set(`${rowIndex}:${columnIndex}`, cell);
+      }
+      return this._cellCache.get(`${rowIndex}:${columnIndex}`);
+    };
+    _getCellStyle = (rowIndex, columnIndex, isScrolling) => {
+      const key = `${rowIndex}:${columnIndex}`;
+      if (!this._cellStyleCache.has(key) || !isScrolling) {
+        const { direction } = this.props;
         const offset = getColumnOffset(
           this.props,
           columnIndex,
           this._instanceProps
         );
         const isRtl = direction === "rtl";
-        itemStyleCache[key] = style = {
+        const cellStyle = {
           position: "absolute",
           left: isRtl ? undefined : offset,
           right: isRtl ? offset : undefined,
-          top: getRowOffset(this.props, rowIndex, this._instanceProps),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
         };
+        if (!isScrolling) {
+          return cellStyle;
+        }
+        this._cellStyleCache.set(key, cellStyle);
       }
-
-      return style;
+      return this._cellStyleCache.get(key);
     };
-
-    _getItemStyleCache = memoizeOne((_, __, ___) => ({}));
+    _getRowStyle = (rowIndex, isScrolling) => {
+      const key = `${rowIndex}`;
+      if (!this._rowStyleCache.has(key) || !isScrolling) {
+        const rowStyle = {
+          position: "absolute",
+          top: getRowOffset(this.props, rowIndex, this._instanceProps),
+          height: getRowHeight(this.props, rowIndex, this._instanceProps),
+          width: getEstimatedTotalWidth(this.props, this._instanceProps),
+        };
+        if (!isScrolling) {
+          return rowStyle;
+        }
+        this._rowStyleCache.set(key, rowStyle);
+      }
+      return this._rowStyleCache.get(key);
+    };
+    // transform: `translateY(${getRowOffset(
+    //   this.props,
+    //   rowIndex,
+    //   this._instanceProps
+    // )}px)`,
 
     _getHorizontalRangeToRender() {
       const {
@@ -562,67 +546,6 @@ export default function createGridComponent({
       ];
     }
 
-    _onScroll = (event) => {
-      const {
-        clientHeight,
-        clientWidth,
-        scrollLeft,
-        scrollTop,
-        scrollHeight,
-        scrollWidth,
-      } = event.currentTarget;
-      this.setState((prevState) => {
-        if (
-          prevState.scrollLeft === scrollLeft &&
-          prevState.scrollTop === scrollTop
-        ) {
-          // Scroll position may have been updated by cDM/cDU,
-          // In which case we don't need to trigger another render,
-          // And we don't want to update state.isScrolling.
-          return null;
-        }
-
-        const { direction } = this.props;
-
-        // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
-        // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
-        // It's also easier for this component if we convert offsets to the same format as they would be in for ltr.
-        // So the simplest solution is to determine which browser behavior we're dealing with, and convert based on it.
-        let calculatedScrollLeft = scrollLeft;
-        if (direction === "rtl") {
-          switch (getRTLOffsetType()) {
-            case "negative":
-              calculatedScrollLeft = -scrollLeft;
-              break;
-            case "positive-descending":
-              calculatedScrollLeft = scrollWidth - clientWidth - scrollLeft;
-              break;
-          }
-        }
-
-        // Prevent Safari's elastic scrolling from causing visual shaking when scrolling past bounds.
-        calculatedScrollLeft = Math.max(
-          0,
-          Math.min(calculatedScrollLeft, scrollWidth - clientWidth)
-        );
-        const calculatedScrollTop = Math.max(
-          0,
-          Math.min(scrollTop, scrollHeight - clientHeight)
-        );
-
-        return {
-          isScrolling: true,
-          horizontalScrollDirection:
-            prevState.scrollLeft < scrollLeft ? "forward" : "backward",
-          scrollLeft: calculatedScrollLeft,
-          scrollTop: calculatedScrollTop,
-          verticalScrollDirection:
-            prevState.scrollTop < scrollTop ? "forward" : "backward",
-          scrollUpdateWasRequested: false,
-        };
-      }, this._resetIsScrollingDebounced);
-    };
-
     _outerRefSetter = (ref) => {
       const { outerRef } = this.props;
 
@@ -656,7 +579,15 @@ export default function createGridComponent({
       this.setState({ isScrolling: false }, () => {
         // Clear style cache after state update has been committed.
         // This way we don't break pure sCU for items that don't use isScrolling param.
-        this._getItemStyleCache(-1);
+        if (this._cellCache.size > 1000) {
+          this._cellCache = new Map(); //{};
+        }
+        if (this._cellStyleCache.size > 1000) {
+          this._cellStyleCache = new Map(); //{};
+        }
+        if (this._rowStyleCache.size > 1000) {
+          this._rowStyleCache = new Map(); //{};
+        }
       });
     };
   };

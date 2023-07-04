@@ -359,7 +359,7 @@ const VariableSizeGrid = createGridComponent({
     return stopIndex;
   },
 
-  initInstanceProps(props, instance) {
+  initInstanceProps(props) {
     const { estimatedColumnWidth, estimatedRowHeight } = props;
 
     const instanceProps = {
@@ -369,46 +369,6 @@ const VariableSizeGrid = createGridComponent({
       lastMeasuredColumnIndex: -1,
       lastMeasuredRowIndex: -1,
       rowMetadataMap: {},
-    };
-
-    instance.resetAfterColumnIndex = (
-      columnIndex,
-      shouldForceUpdate = true
-    ) => {
-      instance.resetAfterIndices({ columnIndex, shouldForceUpdate });
-    };
-
-    instance.resetAfterRowIndex = (rowIndex, shouldForceUpdate = true) => {
-      instance.resetAfterIndices({ rowIndex, shouldForceUpdate });
-    };
-
-    instance.resetAfterIndices = ({
-      columnIndex,
-      rowIndex,
-      shouldForceUpdate = true,
-    }) => {
-      if (typeof columnIndex === "number") {
-        instanceProps.lastMeasuredColumnIndex = Math.min(
-          instanceProps.lastMeasuredColumnIndex,
-          columnIndex - 1
-        );
-      }
-      if (typeof rowIndex === "number") {
-        instanceProps.lastMeasuredRowIndex = Math.min(
-          instanceProps.lastMeasuredRowIndex,
-          rowIndex - 1
-        );
-      }
-
-      // We could potentially optimize further by only evicting styles after this index,
-      // But since styles are only cached while scrolling is in progress-
-      // It seems an unnecessary optimization.
-      // It's unlikely that resetAfterIndex() will be called while a user is scrolling.
-      instance._getItemStyleCache(-1);
-
-      if (shouldForceUpdate) {
-        instance.forceUpdate();
-      }
     };
 
     return instanceProps;
