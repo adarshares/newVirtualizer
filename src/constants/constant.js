@@ -26,7 +26,7 @@ export const COLUMNS = [
   },
   {
     columnKey: "email",
-    width: 250,
+    width: 150,
 
     displayName: "Email",
     fixed: false,

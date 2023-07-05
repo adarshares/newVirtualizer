@@ -45,6 +45,7 @@ const Grid = () => {
   return (
     <>
       <div
+        id="tablebody"
         style={{
           height: 550,
           width: widthOfFixedPane + 500,
