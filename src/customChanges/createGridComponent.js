@@ -281,7 +281,7 @@ export default function createGridComponent({
           items.push(
             createElement("div", {
               children: rows,
-              rowIndex,
+              rowindex: rowIndex,
               key: `${rowIndex}`,
               style: this._getRowStyle(rowIndex, isScrolling),
               role: "row",
@@ -549,16 +549,21 @@ export default function createGridComponent({
     _outerRefSetter = (ref) => {
       const { outerRef } = this.props;
 
+      console.log(this._outerRef, ref);
       this._outerRef = ref;
+      console.log("kisi me nahi aaya", outerRef);
 
       if (typeof outerRef === "function") {
         outerRef(ref);
+        console.log("nahi isme aaya");
       } else if (
         outerRef != null &&
         typeof outerRef === "object" &&
         outerRef.hasOwnProperty("current")
       ) {
         outerRef.current = ref;
+        console.log("isme aaya");
+        console.log(ref);
       }
     };
 

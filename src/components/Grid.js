@@ -36,6 +36,7 @@ const Grid = () => {
   const handleScroll = (event) => {
     refFixedPane.current.scrollTo(event.target.scrollTop);
     refFloatingHeader.current.scrollTo(event.target.scrollLeft);
+    //console.log(refFixedPane, refFloatingHeader, refFloatingPane);
     refFloatingPane.current.scrollTo({
       scrollLeft: event.target.scrollLeft,
       scrollTop: event.target.scrollTop,

@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
-import VariableSizeGrid from "../customChanges/VariableSizeGrid";
-//import VariableSizeGrid from "../customChangesFunction/VariableSizeGrid";
+//import VariableSizeGrid from "../customChanges/VariableSizeGrid";
+import VariableSizeGrid from "../customChangesFunction/VariableSizeGrid";
 import GridCellRenderer from "./GridCellRenderer";
 
 const FloatingPane = forwardRef(
