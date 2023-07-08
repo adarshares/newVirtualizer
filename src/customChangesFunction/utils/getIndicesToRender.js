@@ -1,26 +1,40 @@
 import { getItemMetadata } from "./metaDataManager";
 import { findNearestItem } from "./metaDataManager";
 
-export const getColumnStartIndexForOffset = (
-  props,
+export const getColumnStartIndexForOffset = ({
+  columnWidth,
+  rowHeight,
+  columnCount,
+  rowCount,
   scrollLeft,
-  instanceProps
-) => findNearestItem("column", props, instanceProps, scrollLeft);
+  instanceProps,
+}) =>
+  findNearestItem({
+    itemType: "column",
+    columnWidth,
+    rowHeight,
+    columnCount,
+    rowCount,
+    instanceProps,
+    offset: scrollLeft,
+  });
 
-export const getColumnStopIndexForStartIndex = (
-  props,
+export const getColumnStopIndexForStartIndex = ({
+  columnCount,
+  width,
+  columnWidth,
+  rowHeight,
   startIndex,
   scrollLeft,
-  instanceProps
-) => {
-  const { columnCount, width } = props;
-
-  const itemMetadata = getItemMetadata(
-    "column",
-    props,
-    startIndex,
-    instanceProps
-  );
+  instanceProps,
+}) => {
+  const itemMetadata = getItemMetadata({
+    itemType: "column",
+    columnWidth,
+    rowHeight,
+    index: startIndex,
+    instanceProps,
+  });
   const maxOffset = scrollLeft + width;
 
   let offset = itemMetadata.offset + itemMetadata.size;
@@ -28,24 +42,52 @@ export const getColumnStopIndexForStartIndex = (
 
   while (stopIndex < columnCount - 1 && offset < maxOffset) {
     stopIndex++;
-    offset += getItemMetadata("column", props, stopIndex, instanceProps).size;
+    offset += getItemMetadata({
+      itemType: "column",
+      columnWidth,
+      rowHeight,
+      index: stopIndex,
+      instanceProps,
+    }).size;
   }
 
   return stopIndex;
 };
 
-export const getRowStartIndexForOffset = (props, scrollTop, instanceProps) =>
-  findNearestItem("row", props, instanceProps, scrollTop);
+export const getRowStartIndexForOffset = ({
+  columnWidth,
+  rowHeight,
+  columnCount,
+  rowCount,
+  scrollTop,
+  instanceProps,
+}) =>
+  findNearestItem({
+    itemType: "row",
+    columnWidth,
+    rowHeight,
+    columnCount,
+    rowCount,
+    instanceProps,
+    offset: scrollTop,
+  });
 
 export const getRowStopIndexForStartIndex = (
-  props,
+  rowCount,
+  height,
+  columnWidth,
+  rowHeight,
   startIndex,
   scrollTop,
   instanceProps
 ) => {
-  const { rowCount, height } = props;
-
-  const itemMetadata = getItemMetadata("row", props, startIndex, instanceProps);
+  const itemMetadata = getItemMetadata({
+    itemType: "row",
+    columnWidth,
+    rowHeight,
+    index: startIndex,
+    instanceProps,
+  });
   const maxOffset = scrollTop + height;
 
   let offset = itemMetadata.offset + itemMetadata.size;
@@ -53,7 +95,13 @@ export const getRowStopIndexForStartIndex = (
 
   while (stopIndex < rowCount - 1 && offset < maxOffset) {
     stopIndex++;
-    offset += getItemMetadata("row", props, stopIndex, instanceProps).size;
+    offset += getItemMetadata({
+      itemType: "row",
+      columnWidth,
+      rowHeight,
+      index: stopIndex,
+      instanceProps,
+    }).size;
   }
 
   return stopIndex;

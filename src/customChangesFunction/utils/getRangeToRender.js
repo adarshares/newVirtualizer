@@ -5,21 +5,20 @@ import {
   getRowStopIndexForStartIndex,
 } from "./getIndicesToRender";
 
-export const _getHorizontalRangeToRender = (
-  props,
+export const getHorizontalRangeToRender = ({
+  columnCount,
+  overscanColumnCount,
+  overscanColumnsCount,
+  overscanCount,
+  rowCount,
+  columnWidth,
+  rowHeight,
+  width,
   instanceProps,
   scrollLeft,
   isScrolling,
-  horizontalScrollDirection
-) => {
-  const {
-    columnCount,
-    overscanColumnCount,
-    overscanColumnsCount,
-    overscanCount,
-    rowCount,
-  } = props;
-
+  horizontalScrollDirection,
+}) => {
   const overscanCountResolved =
     overscanColumnCount || overscanColumnsCount || overscanCount || 1;
 
@@ -27,17 +26,24 @@ export const _getHorizontalRangeToRender = (
     return [0, 0, 0, 0]; //make constant
   }
 
-  const startIndex = getColumnStartIndexForOffset(
-    props,
+  const startIndex = getColumnStartIndexForOffset({
+    columnWidth,
+    rowHeight,
+    columnCount,
+    rowCount,
     scrollLeft,
-    instanceProps.current
-  );
-  const stopIndex = getColumnStopIndexForStartIndex(
-    props,
+    instanceProps: instanceProps.current,
+  });
+
+  const stopIndex = getColumnStopIndexForStartIndex({
+    columnCount,
+    width,
+    columnWidth,
+    rowHeight,
     startIndex,
     scrollLeft,
-    instanceProps.current
-  );
+    instanceProps: instanceProps.current,
+  });
 
   // Overscan by one item in each direction so that tab/focus works.
   // If there isn't at least one extra item, tab loops back around.
@@ -58,15 +64,19 @@ export const _getHorizontalRangeToRender = (
   ];
 };
 
-export const _getVerticalRangeToRender = (props, instanceProps, scrollTop) => {
-  const {
-    columnCount,
-    overscanCount,
-    overscanRowCount,
-    overscanRowsCount,
-    rowCount,
-  } = props;
-
+export const getVerticalRangeToRender = ({
+  columnCount,
+  overscanCount,
+  overscanRowCount,
+  overscanRowsCount,
+  rowCount,
+  verticalScrollDirection,
+  columnWidth,
+  rowHeight,
+  height,
+  instanceProps,
+  scrollTop,
+}) => {
   const overscanCountResolved =
     overscanRowCount || overscanRowsCount || overscanCount || 1;
 
@@ -74,13 +84,19 @@ export const _getVerticalRangeToRender = (props, instanceProps, scrollTop) => {
     return [0, 0, 0, 0];
   }
 
-  const startIndex = getRowStartIndexForOffset(
-    props,
+  const startIndex = getRowStartIndexForOffset({
+    columnWidth,
+    rowHeight,
+    columnCount,
+    rowCount,
     scrollTop,
-    instanceProps.current
-  );
+    instanceProps: instanceProps.current,
+  });
   const stopIndex = getRowStopIndexForStartIndex(
-    props,
+    rowCount,
+    height,
+    columnWidth,
+    rowHeight,
     startIndex,
     scrollTop,
     instanceProps.current
@@ -89,11 +105,11 @@ export const _getVerticalRangeToRender = (props, instanceProps, scrollTop) => {
   // Overscan by one item in each direction so that tab/focus works.
   // If there isn't at least one extra item, tab loops back around.
   const overscanBackward =
-    true || props.verticalScrollDirection === "backward"
+    true || verticalScrollDirection === "backward"
       ? Math.max(1, overscanCountResolved)
       : 1;
   const overscanForward =
-    true || props.verticalScrollDirection === "forward"
+    true || verticalScrollDirection === "forward"
       ? Math.max(1, overscanCountResolved)
       : 1;
 
