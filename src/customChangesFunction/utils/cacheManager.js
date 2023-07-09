@@ -1,4 +1,3 @@
-import { createElement } from "react";
 import { getItemMetadata } from "./metaDataManager";
 
 import { getEstimatedTotalWidth } from "./getEstimatedTotalSize";
@@ -40,7 +39,7 @@ export const getCell = (
   direction,
   columnWidth,
   rowHeight,
-  cellRenderer //children
+  CellRenderer //children
 ) => {
   const key = `${rowIndex}:${columnIndex}`;
   if (!cellCache.current.has(key) || !isScrolling) {
@@ -54,16 +53,19 @@ export const getCell = (
       virtualizationParams,
       cellStyleCache
     );
-    const cell = createElement(cellRenderer, {
-      columnIndex,
-      rowIndex,
-      key,
-      style: cellStyle,
-    });
+    const Cell = (
+      <CellRenderer
+        columnIndex={columnIndex}
+        rowIndex={rowIndex}
+        key={key}
+        style={cellStyle}
+      />
+    );
+
     if (!isScrolling) {
-      return cell;
+      return Cell;
     }
-    cellCache.current.set(`${rowIndex}:${columnIndex}`, cell);
+    cellCache.current.set(`${rowIndex}:${columnIndex}`, Cell);
   }
   return cellCache.current.get(`${rowIndex}:${columnIndex}`);
 };
