@@ -3,34 +3,32 @@ import { getItemMetadata } from "./metaDataManager";
 
 import { getEstimatedTotalWidth } from "./getEstimatedTotalSize";
 
-const getRowOffset = (columnWidth, rowHeight, index, instanceProps) =>
+const getRowOffset = (columnWidth, rowHeight, index, virtualizationParams) =>
   getItemMetadata({
     itemType: "row",
     columnWidth,
     rowHeight,
     index,
-    instanceProps,
+    virtualizationParams,
   }).offset;
 
-const getRowHeight = (index, instanceProps) =>
-  instanceProps.rowMetadataMap[index].size;
+const getRowHeight = (index, virtualizationParams) =>
+  virtualizationParams.rowMetadataMap[index].size;
 
-const getColumnWidth = (index, instanceProps) =>
-  instanceProps.columnMetadataMap[index].size;
+const getColumnWidth = (index, virtualizationParams) =>
+  virtualizationParams.columnMetadataMap[index].size;
 
-const getColumnOffset = (columnWidth, rowHeight, index, instanceProps) =>
+const getColumnOffset = (columnWidth, rowHeight, index, virtualizationParams) =>
   getItemMetadata({
     itemType: "column",
     columnWidth,
     rowHeight,
     index,
-    instanceProps,
+    virtualizationParams,
   }).offset;
 
-// Lazily create and cache item styles while scrolling,
-// So that pure component sCU will prevent re-renders.
-// We maintain this cache, and pass a style prop rather than index,
-// So that List can clear cached styles and force item re-render if necessary.
+// Create Cache only while scrolling this will prevent rerenders while scrolling
+// rowstyle and (cellstyle , cell ) caches will clear at different times so blocking times while clearring will spread
 
 export const getCell = (
   rowIndex,
@@ -38,7 +36,7 @@ export const getCell = (
   isScrolling,
   cellCache,
   cellStyleCache,
-  instanceProps,
+  virtualizationParams,
   direction,
   columnWidth,
   rowHeight,
@@ -53,7 +51,7 @@ export const getCell = (
       direction,
       columnWidth,
       rowHeight,
-      instanceProps,
+      virtualizationParams,
       cellStyleCache
     );
     const cell = createElement(cellRenderer, {
@@ -76,7 +74,7 @@ export const getCellStyle = (
   direction,
   columnWidth,
   rowHeight,
-  instanceProps,
+  virtualizationParams,
   cellStyleCache
 ) => {
   const key = `${rowIndex}:${columnIndex}`;
@@ -85,7 +83,7 @@ export const getCellStyle = (
       columnWidth,
       rowHeight,
       columnIndex,
-      instanceProps.current
+      virtualizationParams.current
     );
     const isRtl = direction === "rtl";
     const cellStyle = {
@@ -93,7 +91,7 @@ export const getCellStyle = (
       left: isRtl ? undefined : offset,
       right: isRtl ? offset : undefined,
       height: "100%",
-      width: getColumnWidth(columnIndex, instanceProps.current),
+      width: getColumnWidth(columnIndex, virtualizationParams.current),
     };
     if (!isScrolling) {
       return cellStyle;
@@ -106,7 +104,7 @@ export const getRowStyle = ({
   rowIndex,
   rowStyleCache,
   isScrolling,
-  instanceProps,
+  virtualizationParams,
   columnWidth,
   rowHeight,
   columnCount,
@@ -119,10 +117,13 @@ export const getRowStyle = ({
         columnWidth,
         rowHeight,
         rowIndex,
-        instanceProps.current
+        virtualizationParams.current
       ),
-      height: getRowHeight(rowIndex, instanceProps.current),
-      width: getEstimatedTotalWidth({ columnCount }, instanceProps.current),
+      height: getRowHeight(rowIndex, virtualizationParams.current),
+      width: getEstimatedTotalWidth(
+        { columnCount },
+        virtualizationParams.current
+      ),
     };
     if (!isScrolling) {
       return rowStyle;
@@ -131,8 +132,9 @@ export const getRowStyle = ({
   }
   return rowStyleCache.current.get(key);
 };
+// transform can be used instead of assigning top position
 // transform: `translateY(${getRowOffset(
 //   this.props,
 //   rowIndex,
-//   this.instanceProps.current
+//   this.virtualizationParams.current
 // )}px)`,

@@ -7,7 +7,7 @@ export const getColumnStartIndexForOffset = ({
   columnCount,
   rowCount,
   scrollLeft,
-  instanceProps,
+  virtualizationParams,
 }) =>
   findNearestItem({
     itemType: "column",
@@ -15,7 +15,7 @@ export const getColumnStartIndexForOffset = ({
     rowHeight,
     columnCount,
     rowCount,
-    instanceProps,
+    virtualizationParams,
     offset: scrollLeft,
   });
 
@@ -26,14 +26,14 @@ export const getColumnStopIndexForStartIndex = ({
   rowHeight,
   startIndex,
   scrollLeft,
-  instanceProps,
+  virtualizationParams,
 }) => {
   const itemMetadata = getItemMetadata({
     itemType: "column",
     columnWidth,
     rowHeight,
     index: startIndex,
-    instanceProps,
+    virtualizationParams,
   });
   const maxOffset = scrollLeft + width;
 
@@ -47,7 +47,7 @@ export const getColumnStopIndexForStartIndex = ({
       columnWidth,
       rowHeight,
       index: stopIndex,
-      instanceProps,
+      virtualizationParams,
     }).size;
   }
 
@@ -60,7 +60,7 @@ export const getRowStartIndexForOffset = ({
   columnCount,
   rowCount,
   scrollTop,
-  instanceProps,
+  virtualizationParams,
 }) =>
   findNearestItem({
     itemType: "row",
@@ -68,7 +68,7 @@ export const getRowStartIndexForOffset = ({
     rowHeight,
     columnCount,
     rowCount,
-    instanceProps,
+    virtualizationParams,
     offset: scrollTop,
   });
 
@@ -79,14 +79,14 @@ export const getRowStopIndexForStartIndex = (
   rowHeight,
   startIndex,
   scrollTop,
-  instanceProps
+  virtualizationParams
 ) => {
   const itemMetadata = getItemMetadata({
     itemType: "row",
     columnWidth,
     rowHeight,
     index: startIndex,
-    instanceProps,
+    virtualizationParams,
   });
   const maxOffset = scrollTop + height;
 
@@ -100,7 +100,7 @@ export const getRowStopIndexForStartIndex = (
       columnWidth,
       rowHeight,
       index: stopIndex,
-      instanceProps,
+      virtualizationParams,
     }).size;
   }
 

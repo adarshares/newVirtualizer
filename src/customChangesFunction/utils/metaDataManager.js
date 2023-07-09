@@ -8,17 +8,17 @@ export const getItemMetadata = ({
   columnWidth,
   rowHeight,
   index,
-  instanceProps,
+  virtualizationParams,
 }) => {
   let itemMetadataMap, itemSize, lastMeasuredIndex;
   if (itemType === "column") {
-    itemMetadataMap = instanceProps.columnMetadataMap;
+    itemMetadataMap = virtualizationParams.columnMetadataMap;
     itemSize = columnWidth;
-    lastMeasuredIndex = instanceProps.lastMeasuredColumnIndex;
+    lastMeasuredIndex = virtualizationParams.lastMeasuredColumnIndex;
   } else {
-    itemMetadataMap = instanceProps.rowMetadataMap;
+    itemMetadataMap = virtualizationParams.rowMetadataMap;
     itemSize = rowHeight;
-    lastMeasuredIndex = instanceProps.lastMeasuredRowIndex;
+    lastMeasuredIndex = virtualizationParams.lastMeasuredRowIndex;
   }
 
   if (index > lastMeasuredIndex) {
@@ -40,9 +40,9 @@ export const getItemMetadata = ({
     }
 
     if (itemType === "column") {
-      instanceProps.lastMeasuredColumnIndex = index;
+      virtualizationParams.lastMeasuredColumnIndex = index;
     } else {
-      instanceProps.lastMeasuredRowIndex = index;
+      virtualizationParams.lastMeasuredRowIndex = index;
     }
   }
 
@@ -55,16 +55,16 @@ export const findNearestItem = ({
   rowHeight,
   columnCount,
   rowCount,
-  instanceProps,
+  virtualizationParams,
   offset,
 }) => {
   let itemMetadataMap, lastMeasuredIndex;
   if (itemType === "column") {
-    itemMetadataMap = instanceProps.columnMetadataMap;
-    lastMeasuredIndex = instanceProps.lastMeasuredColumnIndex;
+    itemMetadataMap = virtualizationParams.columnMetadataMap;
+    lastMeasuredIndex = virtualizationParams.lastMeasuredColumnIndex;
   } else {
-    itemMetadataMap = instanceProps.rowMetadataMap;
-    lastMeasuredIndex = instanceProps.lastMeasuredRowIndex;
+    itemMetadataMap = virtualizationParams.rowMetadataMap;
+    lastMeasuredIndex = virtualizationParams.lastMeasuredRowIndex;
   }
 
   const lastMeasuredItemOffset =
@@ -76,7 +76,7 @@ export const findNearestItem = ({
       itemType,
       columnWidth,
       rowHeight,
-      instanceProps,
+      virtualizationParams,
       lastMeasuredIndex,
       0,
       offset
@@ -91,7 +91,7 @@ export const findNearestItem = ({
       rowHeight,
       columnCount,
       rowCount,
-      instanceProps,
+      virtualizationParams,
       Math.max(0, lastMeasuredIndex),
       offset
     );
@@ -102,7 +102,7 @@ export const findNearestItemBinarySearch = (
   itemType,
   columnWidth,
   rowHeight,
-  instanceProps,
+  virtualizationParams,
   high,
   low,
   offset
@@ -114,7 +114,7 @@ export const findNearestItemBinarySearch = (
       columnWidth,
       rowHeight,
       index: middle,
-      instanceProps,
+      virtualizationParams,
     }).offset;
 
     if (currentOffset === offset) {
@@ -139,7 +139,7 @@ export const findNearestItemExponentialSearch = (
   rowHeight,
   columnCount,
   rowCount,
-  instanceProps,
+  virtualizationParams,
   index,
   offset
 ) => {
@@ -148,8 +148,13 @@ export const findNearestItemExponentialSearch = (
 
   while (
     index < itemCount &&
-    getItemMetadata({ itemType, columnWidth, rowHeight, index, instanceProps })
-      .offset < offset
+    getItemMetadata({
+      itemType,
+      columnWidth,
+      rowHeight,
+      index,
+      virtualizationParams,
+    }).offset < offset
   ) {
     index += interval;
     interval *= 2;
@@ -159,7 +164,7 @@ export const findNearestItemExponentialSearch = (
     itemType,
     columnWidth,
     rowHeight,
-    instanceProps,
+    virtualizationParams,
     Math.min(index, itemCount - 1),
     Math.floor(index / 2),
     offset
@@ -177,7 +182,7 @@ export const getOffsetForIndexAndAlignment = (
   index,
   align,
   scrollOffset,
-  instanceProps,
+  virtualizationParams,
   scrollbarSize
 ) => {
   const size = itemType === "column" ? width : height;
@@ -186,15 +191,15 @@ export const getOffsetForIndexAndAlignment = (
     columnWidth,
     rowHeight,
     index,
-    instanceProps,
+    virtualizationParams,
   });
 
   // Get estimated total size after ItemMetadata is computed,
   // To ensure it reflects actual measurements instead of just estimates.
   const estimatedTotalSize =
     itemType === "column"
-      ? getEstimatedTotalWidth({ columnCount }, instanceProps)
-      : getEstimatedTotalHeight({ rowCount }, instanceProps);
+      ? getEstimatedTotalWidth({ columnCount }, virtualizationParams)
+      : getEstimatedTotalHeight({ rowCount }, virtualizationParams);
 
   const maxOffset = Math.max(
     0,
@@ -244,7 +249,7 @@ export const getOffsetForColumnAndAlignment = (
   index,
   align,
   scrollOffset,
-  instanceProps,
+  virtualizationParams,
   scrollbarSize
 ) =>
   getOffsetForIndexAndAlignment(
@@ -256,7 +261,7 @@ export const getOffsetForColumnAndAlignment = (
     index,
     align,
     scrollOffset,
-    instanceProps,
+    virtualizationParams,
     scrollbarSize
   );
 
@@ -268,7 +273,7 @@ export const getOffsetForRowAndAlignment = (
   index,
   align,
   scrollOffset,
-  instanceProps,
+  virtualizationParams,
   scrollbarSize
 ) =>
   getOffsetForIndexAndAlignment(
@@ -280,6 +285,6 @@ export const getOffsetForRowAndAlignment = (
     index,
     align,
     scrollOffset,
-    instanceProps,
+    virtualizationParams,
     scrollbarSize
   );

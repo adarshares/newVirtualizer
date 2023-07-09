@@ -8,19 +8,17 @@ import {
 export const getHorizontalRangeToRender = ({
   columnCount,
   overscanColumnCount,
-  overscanColumnsCount,
   overscanCount,
   rowCount,
   columnWidth,
   rowHeight,
   width,
-  instanceProps,
+  virtualizationParams,
   scrollLeft,
   isScrolling,
   horizontalScrollDirection,
 }) => {
-  const overscanCountResolved =
-    overscanColumnCount || overscanColumnsCount || overscanCount || 1;
+  const overscanCountResolved = overscanColumnCount || overscanCount || 1;
 
   if (columnCount === 0 || rowCount === 0) {
     return [0, 0, 0, 0]; //make constant
@@ -32,7 +30,7 @@ export const getHorizontalRangeToRender = ({
     columnCount,
     rowCount,
     scrollLeft,
-    instanceProps: instanceProps.current,
+    virtualizationParams: virtualizationParams.current,
   });
 
   const stopIndex = getColumnStopIndexForStartIndex({
@@ -42,7 +40,7 @@ export const getHorizontalRangeToRender = ({
     rowHeight,
     startIndex,
     scrollLeft,
-    instanceProps: instanceProps.current,
+    virtualizationParams: virtualizationParams.current,
   });
 
   // Overscan by one item in each direction so that tab/focus works.
@@ -68,17 +66,15 @@ export const getVerticalRangeToRender = ({
   columnCount,
   overscanCount,
   overscanRowCount,
-  overscanRowsCount,
   rowCount,
   verticalScrollDirection,
   columnWidth,
   rowHeight,
   height,
-  instanceProps,
+  virtualizationParams,
   scrollTop,
 }) => {
-  const overscanCountResolved =
-    overscanRowCount || overscanRowsCount || overscanCount || 1;
+  const overscanCountResolved = overscanRowCount || overscanCount || 1;
 
   if (columnCount === 0 || rowCount === 0) {
     return [0, 0, 0, 0];
@@ -90,7 +86,7 @@ export const getVerticalRangeToRender = ({
     columnCount,
     rowCount,
     scrollTop,
-    instanceProps: instanceProps.current,
+    virtualizationParams: virtualizationParams.current,
   });
   const stopIndex = getRowStopIndexForStartIndex(
     rowCount,
@@ -99,11 +95,10 @@ export const getVerticalRangeToRender = ({
     rowHeight,
     startIndex,
     scrollTop,
-    instanceProps.current
+    virtualizationParams.current
   );
 
-  // Overscan by one item in each direction so that tab/focus works.
-  // If there isn't at least one extra item, tab loops back around.
+  // Extra overscan atleast 1 for edge case
   const overscanBackward =
     true || verticalScrollDirection === "backward"
       ? Math.max(1, overscanCountResolved)
@@ -112,8 +107,6 @@ export const getVerticalRangeToRender = ({
     true || verticalScrollDirection === "forward"
       ? Math.max(1, overscanCountResolved)
       : 1;
-
-  //console.log("overscans", overscanBackward, overscanForward);
 
   return [
     Math.max(0, startIndex - overscanBackward),

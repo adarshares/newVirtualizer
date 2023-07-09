@@ -1,7 +1,6 @@
 import {
   forwardRef,
   memo,
-  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -12,13 +11,11 @@ import {
   getVerticalRangeToRender,
   getHorizontalRangeToRender,
 } from "./utils/getRangeToRender";
-
 import { getCell, getRowStyle } from "./utils/cacheManager";
 import {
   getEstimatedTotalHeight,
   getEstimatedTotalWidth,
 } from "./utils/getEstimatedTotalSize";
-
 import { initInstanceProps } from "./utils/instancePropsInitialization";
 import {
   getOffsetForColumnAndAlignment,
@@ -26,6 +23,7 @@ import {
 } from "./utils/metaDataManager";
 import { useScroll } from "./hooks/useScroll";
 import { ACTION_TYPES } from "./hooks/action_types";
+import { useCache } from "./hooks/useCache";
 
 const IS_SCROLLING_DEBOUNCE_INTERVAL = 150;
 
@@ -43,11 +41,11 @@ const VariableSizeGrid = memo(
       direction,
       onItemsRendered,
       overscanColumnCount,
-      overscanColumnsCount,
       overscanRowCount,
-      overscanRowsCount,
       overscanCount,
       verticalScrollDirection,
+      //children
+      //style
     } = props;
     const {
       isScrolling,
@@ -61,9 +59,7 @@ const VariableSizeGrid = memo(
       initialScrollTop,
     });
 
-    const cellCache = useRef(new Map());
-    const cellStyleCache = useRef(new Map());
-    const rowStyleCache = useRef(new Map());
+    const { getCache, setCache } = useCache();
     const resetIsScrollingTimeoutId = useRef(null);
     const virtualizationParams = useRef(initInstanceProps(props));
     const outerRef = useRef(null);
@@ -234,13 +230,12 @@ const VariableSizeGrid = memo(
           ] = getHorizontalRangeToRender({
             columnCount,
             overscanColumnCount,
-            overscanColumnsCount,
             overscanCount,
             rowCount,
             columnWidth,
             rowHeight,
             width,
-            instanceProps: virtualizationParams,
+            virtualizationParams,
             scrollLeft,
             isScrolling,
             horizontalScrollDirection,
@@ -254,13 +249,12 @@ const VariableSizeGrid = memo(
             columnCount,
             overscanCount,
             overscanRowCount,
-            overscanRowsCount,
             rowCount,
             verticalScrollDirection,
             columnWidth,
             rowHeight,
             height,
-            instanceProps: virtualizationParams,
+            virtualizationParams,
             scrollTop,
           });
           callOnItemsRendered(
@@ -276,10 +270,6 @@ const VariableSizeGrid = memo(
         }
       }
     };
-
-    const outerRefSetter = useCallback((ref) => {
-      outerRef.current = ref;
-    }, []);
 
     const resetIsScrollingDebounced = () => {
       if (resetIsScrollingTimeoutId.current) {
@@ -297,28 +287,18 @@ const VariableSizeGrid = memo(
 
       onAction({ type: ACTION_TYPES.SCROLL_STOP });
       // Clear style cache after state update has been committed and the size of cache has exceeded its max value.
-      // way we don't break pure sCU for items that don't use isScrolling param.
-      if (cellCache.current.size > 1000) {
-        cellCache.current.clear(); // = new Map(); //{};
-      }
-      if (cellStyleCache.current.size > 1000) {
-        cellStyleCache.current.clear(); // = new Map(); //{};
-      }
-      if (rowStyleCache.current.size > 1000) {
-        rowStyleCache.current.clear(); // = new Map(); //{};
-      }
+      setCache({ type: ACTION_TYPES.CLEAR_CACHE });
     };
 
     const [columnStartIndex, columnStopIndex] = getHorizontalRangeToRender({
       columnCount,
       overscanColumnCount,
-      overscanColumnsCount,
       overscanCount,
       rowCount,
       columnWidth,
       rowHeight,
       width,
-      instanceProps: virtualizationParams,
+      virtualizationParams,
       scrollLeft,
       isScrolling,
       horizontalScrollDirection,
@@ -327,13 +307,12 @@ const VariableSizeGrid = memo(
       columnCount,
       overscanCount,
       overscanRowCount,
-      overscanRowsCount,
       rowCount,
       verticalScrollDirection,
       columnWidth,
       rowHeight,
       height,
-      instanceProps: virtualizationParams,
+      virtualizationParams,
       scrollTop,
     });
 
@@ -351,8 +330,8 @@ const VariableSizeGrid = memo(
               rowIndex,
               columnIndex,
               isScrolling,
-              cellCache,
-              cellStyleCache,
+              getCache({ type: ACTION_TYPES.GET_CELL }),
+              getCache({ type: ACTION_TYPES.GET_CELL_STYLE }),
               virtualizationParams,
               direction,
               columnWidth,
@@ -361,8 +340,6 @@ const VariableSizeGrid = memo(
             )
           );
         }
-        /*
-        { rowIndex, rowStyleCache, isScrolling, instanceProps, columnWidth, rowHeight, columnCount, }*/
         items.push(
           <div
             children={rows}
@@ -370,9 +347,9 @@ const VariableSizeGrid = memo(
             key={`${rowIndex}`}
             style={getRowStyle({
               rowIndex,
-              rowStyleCache,
+              rowStyleCache: getCache({ type: ACTION_TYPES.GET_ROW_STYLE }),
               isScrolling,
-              instanceProps: virtualizationParams,
+              virtualizationParams,
               columnWidth,
               rowHeight,
               columnCount,
@@ -395,15 +372,15 @@ const VariableSizeGrid = memo(
 
     return (
       <div
-        ref={outerRefSetter}
+        ref={outerRef.current}
         style={{
           position: "relative",
-          height: width,
+          height: height,
           width: width,
           overflow: "auto",
           WebkitOverflowScrolling: "touch",
           willChange: "transform",
-          direction: direction,
+          direction,
           ...props.style,
         }}
         role="presentation"

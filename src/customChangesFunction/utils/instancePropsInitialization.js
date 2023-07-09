@@ -17,5 +17,5 @@ export const initInstanceProps = (props) => {
     estimatedRowHeight: estimatedRowHeight || DEFAULT_ESTIMATED_ITEM_SIZE,
   };
 
-  //return instanceProps;
+  //return virtualizationParams;
 };
