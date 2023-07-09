@@ -1,11 +1,11 @@
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { ACTION_TYPES } from "./action_types";
 export const useCache = () => {
   const cellCache = useRef(new Map());
   const cellStyleCache = useRef(new Map());
   const rowStyleCache = useRef(new Map());
 
-  const clearCache = () => {
+  const clearCache = useCallback(() => {
     if (cellCache.current.size > 1000) {
       cellCache.current.clear(); // = new Map(); //{};//test performance
     }
@@ -15,9 +15,11 @@ export const useCache = () => {
     if (rowStyleCache.current.size > 1000) {
       rowStyleCache.current.clear(); // = new Map(); //{};
     }
-  };
+  }, []);
 
-  const getCache = (action) => {
+  //console.log("useCache");
+
+  const getCache = useCallback((action) => {
     switch (action.type) {
       case ACTION_TYPES.GET_CELL:
         return cellCache;
@@ -28,9 +30,9 @@ export const useCache = () => {
       default:
         break;
     }
-  };
+  }, []);
 
-  const setCache = (action) => {
+  const setCache = useCallback((action) => {
     switch (action.type) {
       case ACTION_TYPES.CLEAR_CACHE:
         clearCache();
@@ -38,6 +40,6 @@ export const useCache = () => {
       default:
         break;
     }
-  };
+  }, []);
   return { getCache, setCache };
 };

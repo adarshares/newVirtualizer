@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { ACTION_TYPES } from "./action_types";
 
@@ -15,7 +15,9 @@ export const useScroll = ({ initialScrollLeft, initialScrollTop }) => {
   const [scrollUpdateWasRequested, setScrollUpdateWasRequested] =
     useState(false);
 
-  const onAction = (action) => {
+  //console.log("useScrollCalled");
+
+  const onAction = useCallback((action) => {
     switch (action.type) {
       case ACTION_TYPES.SCROLL_START:
         setIsScrolling(true);
@@ -38,7 +40,7 @@ export const useScroll = ({ initialScrollLeft, initialScrollTop }) => {
       default:
         break;
     }
-  };
+  }, []);
 
   return {
     isScrolling,

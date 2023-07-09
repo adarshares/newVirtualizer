@@ -284,7 +284,7 @@ const VariableSizeGrid = memo(
           cancelTimeout(resetIsScrollingTimeoutId.current);
         }
       };
-    }, [callPropsCallbacks, initialScrollLeft, initialScrollTop]);
+    }, []);
 
     useEffect(() => {
       const outerRefCurrent = outerRef.current;
