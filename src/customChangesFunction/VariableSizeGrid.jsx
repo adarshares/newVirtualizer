@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from "react";
 import { cancelTimeout, requestTimeout } from "./helpers/timer";
@@ -320,84 +321,134 @@ const VariableSizeGrid = memo(
       direction,
     ]);
 
-    const [columnStartIndex, columnStopIndex] = getHorizontalRangeToRender({
-      columnCount,
-      overscanColumnCount,
-      overscanCount,
-      rowCount,
-      columnWidth,
-      rowHeight,
-      width,
-      virtualizationParams,
-      scrollLeft,
-      isScrolling,
-      horizontalScrollDirection,
-    });
-    const [rowStartIndex, rowStopIndex] = getVerticalRangeToRender({
-      columnCount,
-      overscanCount,
-      overscanRowCount,
-      rowCount,
-      verticalScrollDirection,
-      columnWidth,
-      rowHeight,
-      height,
-      virtualizationParams,
-      scrollTop,
-    });
+    const [columnStartIndex, columnStopIndex] = useMemo(
+      () =>
+        getHorizontalRangeToRender({
+          columnCount,
+          overscanColumnCount,
+          overscanCount,
+          rowCount,
+          columnWidth,
+          rowHeight,
+          width,
+          virtualizationParams,
+          scrollLeft,
+          isScrolling,
+          horizontalScrollDirection,
+        }),
+      [
+        columnCount,
+        columnWidth,
+        horizontalScrollDirection,
+        isScrolling,
+        overscanColumnCount,
+        overscanCount,
+        rowCount,
+        rowHeight,
+        scrollLeft,
+        width,
+      ]
+    );
+    const [rowStartIndex, rowStopIndex] = useMemo(
+      () =>
+        getVerticalRangeToRender({
+          columnCount,
+          overscanCount,
+          overscanRowCount,
+          rowCount,
+          verticalScrollDirection,
+          columnWidth,
+          rowHeight,
+          height,
+          virtualizationParams,
+          scrollTop,
+        }),
+      [
+        columnCount,
+        columnWidth,
+        height,
+        overscanCount,
+        overscanRowCount,
+        rowCount,
+        rowHeight,
+        scrollTop,
+        verticalScrollDirection,
+      ]
+    );
 
-    const items = [];
-    if (columnCount > 0 && rowCount) {
-      for (let rowIndex = rowStartIndex; rowIndex <= rowStopIndex; rowIndex++) {
-        const rows = [];
+    const items = useMemo(() => {
+      const items = [];
+      if (columnCount > 0 && rowCount) {
         for (
-          let columnIndex = columnStartIndex;
-          columnIndex <= columnStopIndex;
-          columnIndex++
+          let rowIndex = rowStartIndex;
+          rowIndex <= rowStopIndex;
+          rowIndex++
         ) {
-          rows.push(
-            getCell(
-              rowIndex,
-              columnIndex,
-              isScrolling,
-              getCache({ type: ACTION_TYPES.GET_CELL }),
-              getCache({ type: ACTION_TYPES.GET_CELL_STYLE }),
-              virtualizationParams,
-              direction,
-              columnWidth,
-              rowHeight,
-              props.children
-            )
+          const rows = [];
+          for (
+            let columnIndex = columnStartIndex;
+            columnIndex <= columnStopIndex;
+            columnIndex++
+          ) {
+            rows.push(
+              getCell(
+                rowIndex,
+                columnIndex,
+                isScrolling,
+                getCache({ type: ACTION_TYPES.GET_CELL }),
+                getCache({ type: ACTION_TYPES.GET_CELL_STYLE }),
+                virtualizationParams,
+                direction,
+                columnWidth,
+                rowHeight,
+                props.children
+              )
+            );
+          }
+          items.push(
+            <div
+              children={rows}
+              rowindex={rowIndex}
+              key={`${rowIndex}`}
+              style={getRowStyle({
+                rowIndex,
+                rowStyleCache: getCache({ type: ACTION_TYPES.GET_ROW_STYLE }),
+                isScrolling,
+                virtualizationParams,
+                columnWidth,
+                rowHeight,
+                columnCount,
+              })}
+              role="row"
+              aria-rowindex={rowIndex + 1}
+            />
           );
         }
-        items.push(
-          <div
-            children={rows}
-            rowindex={rowIndex}
-            key={`${rowIndex}`}
-            style={getRowStyle({
-              rowIndex,
-              rowStyleCache: getCache({ type: ACTION_TYPES.GET_ROW_STYLE }),
-              isScrolling,
-              virtualizationParams,
-              columnWidth,
-              rowHeight,
-              columnCount,
-            })}
-            role="row"
-            aria-rowindex={rowIndex + 1}
-          />
-        );
       }
-    }
+      return items;
+    }, [
+      columnCount,
+      columnStartIndex,
+      columnStopIndex,
+      columnWidth,
+      direction,
+      getCache,
+      isScrolling,
+      props.children,
+      rowCount,
+      rowHeight,
+      rowStartIndex,
+      rowStopIndex,
+    ]);
 
-    const estimatedTotalHeight = getEstimatedTotalHeight(
-      { rowCount },
-      virtualizationParams.current
+    const estimatedTotalHeight = useMemo(
+      () => getEstimatedTotalHeight({ rowCount }, virtualizationParams.current),
+      [rowCount]
     );
-    const estimatedTotalWidth = getEstimatedTotalWidth(
-      { columnCount },
-      virtualizationParams.current
+    const estimatedTotalWidth = useMemo(
+      () =>
+        getEstimatedTotalWidth({ columnCount }, virtualizationParams.current),
+      [columnCount]
     );
 
     return (
