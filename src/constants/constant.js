@@ -13,7 +13,7 @@ export const COLUMNS = [
     width: 150,
 
     displayName: "First Name",
-    fixed: true,
+    fixed: false,
     isReorderable: true,
   },
   {
@@ -21,7 +21,7 @@ export const COLUMNS = [
     width: 150,
 
     displayName: "Last Name",
-    fixed: true,
+    fixed: false,
     isReorderable: true,
   },
   {

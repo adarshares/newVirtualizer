@@ -418,7 +418,7 @@ export default function createGridComponent({
           position: "absolute",
           left: isRtl ? undefined : offset,
           right: isRtl ? offset : undefined,
-          height: getRowHeight(this.props, rowIndex, this._instanceProps),
+          height: "100%", //getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
         };
         if (!isScrolling) {
