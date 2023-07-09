@@ -12,8 +12,6 @@ export const useScroll = ({ initialScrollLeft, initialScrollTop }) => {
   const [scrollTop, setScrollTop] = useState(
     typeof initialScrollTop === "number" ? initialScrollTop : 0
   );
-  const [scrollUpdateWasRequested, setScrollUpdateWasRequested] =
-    useState(false);
 
   //console.log("useScrollCalled");
 
@@ -31,12 +29,6 @@ export const useScroll = ({ initialScrollLeft, initialScrollTop }) => {
       case ACTION_TYPES.SET_SCROLL_TOP:
         setScrollTop(action.payload);
         break;
-      case ACTION_TYPES.REQUEST_SCROLL_UPDATE:
-        setScrollUpdateWasRequested(true);
-        break;
-      case ACTION_TYPES.DENY_SCROLL_UPDATE:
-        setScrollUpdateWasRequested(false);
-        break;
       default:
         break;
     }
@@ -47,7 +39,6 @@ export const useScroll = ({ initialScrollLeft, initialScrollTop }) => {
     horizontalScrollDirection,
     scrollLeft,
     scrollTop,
-    scrollUpdateWasRequested,
     onAction,
   };
 };

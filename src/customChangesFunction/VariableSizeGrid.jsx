@@ -54,7 +54,6 @@ const VariableSizeGrid = memo(
       horizontalScrollDirection,
       scrollLeft,
       scrollTop,
-      scrollUpdateWasRequested,
       onAction,
     } = useScroll({
       initialScrollLeft,
@@ -290,7 +289,7 @@ const VariableSizeGrid = memo(
     useEffect(() => {
       const outerRefCurrent = outerRef.current;
 
-      if (scrollUpdateWasRequested && outerRefCurrent != null) {
+      if (isScrolling && outerRefCurrent != null) {
         if (direction === "rtl") {
           switch (getRTLOffsetType()) {
             case "negative":
@@ -313,70 +312,36 @@ const VariableSizeGrid = memo(
       }
 
       callPropsCallbacks();
-    }, [
-      scrollUpdateWasRequested,
-      scrollLeft,
-      scrollTop,
-      callPropsCallbacks,
-      direction,
-    ]);
+    }, [scrollLeft, scrollTop, callPropsCallbacks, direction, isScrolling]);
 
-    const [columnStartIndex, columnStopIndex] = useMemo(
-      () =>
-        getHorizontalRangeToRender({
-          columnCount,
-          overscanColumnCount,
-          overscanCount,
-          rowCount,
-          columnWidth,
-          rowHeight,
-          width,
-          virtualizationParams,
-          scrollLeft,
-          isScrolling,
-          horizontalScrollDirection,
-        }),
-      [
+    const items = useMemo(() => {
+      const [columnStartIndex, columnStopIndex] = getHorizontalRangeToRender({
         columnCount,
-        columnWidth,
-        horizontalScrollDirection,
-        isScrolling,
         overscanColumnCount,
         overscanCount,
         rowCount,
-        rowHeight,
-        scrollLeft,
-        width,
-      ]
-    );
-    const [rowStartIndex, rowStopIndex] = useMemo(
-      () =>
-        getVerticalRangeToRender({
-          columnCount,
-          overscanCount,
-          overscanRowCount,
-          rowCount,
-          verticalScrollDirection,
-          columnWidth,
-          rowHeight,
-          height,
-          virtualizationParams,
-          scrollTop,
-        }),
-      [
-        columnCount,
         columnWidth,
-        height,
+        rowHeight,
+        width,
+        virtualizationParams,
+        scrollLeft,
+        isScrolling,
+        horizontalScrollDirection,
+      });
+
+      const [rowStartIndex, rowStopIndex] = getVerticalRangeToRender({
+        columnCount,
         overscanCount,
         overscanRowCount,
         rowCount,
-        rowHeight,
-        scrollTop,
         verticalScrollDirection,
-      ]
-    );
+        columnWidth,
+        rowHeight,
+        height,
+        virtualizationParams,
+        scrollTop,
+      });
 
-    const items = useMemo(() => {
       const items = [];
       if (columnCount > 0 && rowCount) {
         for (
@@ -428,17 +393,22 @@ const VariableSizeGrid = memo(
       return items;
     }, [
       columnCount,
-      columnStartIndex,
-      columnStopIndex,
       columnWidth,
       direction,
       getCache,
+      height,
+      horizontalScrollDirection,
       isScrolling,
+      overscanColumnCount,
+      overscanCount,
+      overscanRowCount,
       props.children,
       rowCount,
       rowHeight,
-      rowStartIndex,
-      rowStopIndex,
+      scrollLeft,
+      scrollTop,
+      verticalScrollDirection,
+      width,
     ]);
 
     const estimatedTotalHeight = useMemo(
