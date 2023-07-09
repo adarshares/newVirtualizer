@@ -1,12 +1,13 @@
 import {
   forwardRef,
   memo,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
 } from "react";
 import { cancelTimeout, requestTimeout } from "./helpers/timer";
-import { getScrollbarSize, getRTLOffsetType } from "./helpers/domHelpers";
+import { getRTLOffsetType } from "./helpers/domHelpers";
 import {
   getVerticalRangeToRender,
   getHorizontalRangeToRender,
@@ -17,10 +18,10 @@ import {
   getEstimatedTotalWidth,
 } from "./utils/getEstimatedTotalSize";
 import { initInstanceProps } from "./utils/instancePropsInitialization";
-import {
-  getOffsetForColumnAndAlignment,
-  getOffsetForRowAndAlignment,
-} from "./utils/metaDataManager";
+// import {
+//   getOffsetForColumnAndAlignment,
+//   getOffsetForRowAndAlignment,
+// } from "./utils/metaDataManager";
 import { useScroll } from "./hooks/useScroll";
 import { ACTION_TYPES } from "./hooks/action_types";
 import { useCache } from "./hooks/useCache";
@@ -63,153 +64,117 @@ const VariableSizeGrid = memo(
     const resetIsScrollingTimeoutId = useRef(null);
     const virtualizationParams = useRef(initInstanceProps(props));
     const outerRef = useRef(null);
+    const resetIsScrolling = useCallback(() => {
+      resetIsScrollingTimeoutId.current = null;
 
-    const scrollTo = ({ scrollLeft, scrollTop }) => {
-      if (scrollLeft !== undefined) {
-        scrollLeft = Math.max(0, scrollLeft);
-      }
-      if (scrollTop !== undefined) {
-        scrollTop = Math.max(0, scrollTop);
-      }
+      onAction({ type: ACTION_TYPES.SCROLL_STOP });
+      // Clear style cache after state update has been committed and the size of cache has exceeded its max value.
+      setCache({ type: ACTION_TYPES.CLEAR_CACHE });
+    }, [onAction, setCache]);
 
-      onAction({ type: ACTION_TYPES.REQUEST_SCROLL_UPDATE });
-      onAction({
-        type: ACTION_TYPES.SET_SCROLL_LEFT,
-        payload: scrollLeft === undefined ? 0 : scrollLeft,
-      });
-      onAction({
-        type: ACTION_TYPES.SET_SCROLL_TOP,
-        payload: scrollTop === undefined ? 0 : scrollTop,
-      });
-
-      onAction({ type: ACTION_TYPES.SCROLL_START });
-      resetIsScrollingDebounced();
-    };
-
-    const scrollToItem = ({ align = "auto", columnIndex, rowIndex }) => {
-      const scrollbarSize = getScrollbarSize();
-
-      if (columnIndex !== undefined) {
-        columnIndex = Math.max(0, Math.min(columnIndex, columnCount - 1));
-      }
-      if (rowIndex !== undefined) {
-        rowIndex = Math.max(0, Math.min(rowIndex, rowCount - 1));
+    const resetIsScrollingDebounced = useCallback(() => {
+      if (resetIsScrollingTimeoutId.current) {
+        cancelTimeout(resetIsScrollingTimeoutId.current);
       }
 
-      const estimatedTotalHeight = getEstimatedTotalHeight(
-        { rowCount },
-        virtualizationParams.current
+      resetIsScrollingTimeoutId.current = requestTimeout(
+        resetIsScrolling,
+        IS_SCROLLING_DEBOUNCE_INTERVAL
       );
-      const estimatedTotalWidth = getEstimatedTotalWidth(
-        { columnCount },
-        virtualizationParams.current
-      );
+    }, [resetIsScrolling]);
 
-      // The scrollbar size should be considered when scrolling an item into view,
-      // to ensure it's fully visible.
-      // But we only need to account for its size when it's actually visible.
-      const horizontalScrollbarSize =
-        estimatedTotalWidth > width ? scrollbarSize : 0;
-      const verticalScrollbarSize =
-        estimatedTotalHeight > height ? scrollbarSize : 0;
+    const scrollTo = useCallback(
+      ({ scrollLeft, scrollTop }) => {
+        if (scrollLeft !== undefined) {
+          scrollLeft = Math.max(0, scrollLeft);
+        }
+        if (scrollTop !== undefined) {
+          scrollTop = Math.max(0, scrollTop);
+        }
 
-      const scrollLeft =
-        columnIndex !== undefined
-          ? getOffsetForColumnAndAlignment(
-              width,
-              height,
-              columnWidth,
-              rowHeight,
-              columnIndex,
-              align,
-              scrollLeft,
-              virtualizationParams.current,
-              verticalScrollbarSize
-            )
-          : scrollLeft;
-      const scrollTop =
-        rowIndex !== undefined
-          ? getOffsetForRowAndAlignment(
-              width,
-              height,
-              columnWidth,
-              rowHeight,
-              rowIndex,
-              align,
-              scrollTop,
-              virtualizationParams.current,
-              horizontalScrollbarSize
-            )
-          : scrollTop;
-      scrollTo({ scrollLeft, scrollTop });
-    };
+        onAction({ type: ACTION_TYPES.REQUEST_SCROLL_UPDATE });
+        onAction({
+          type: ACTION_TYPES.SET_SCROLL_LEFT,
+          payload: scrollLeft === undefined ? 0 : scrollLeft,
+        });
+        onAction({
+          type: ACTION_TYPES.SET_SCROLL_TOP,
+          payload: scrollTop === undefined ? 0 : scrollTop,
+        });
+
+        onAction({ type: ACTION_TYPES.SCROLL_START });
+        resetIsScrollingDebounced();
+      },
+      [onAction, resetIsScrollingDebounced]
+    );
+
+    // const scrollToItem = ({ align = "auto", columnIndex, rowIndex }) => {
+    //   const scrollbarSize = getScrollbarSize();
+
+    //   if (columnIndex !== undefined) {
+    //     columnIndex = Math.max(0, Math.min(columnIndex, columnCount - 1));
+    //   }
+    //   if (rowIndex !== undefined) {
+    //     rowIndex = Math.max(0, Math.min(rowIndex, rowCount - 1));
+    //   }
+
+    //   const estimatedTotalHeight = getEstimatedTotalHeight(
+    //     { rowCount },
+    //     virtualizationParams.current
+    //   );
+    //   const estimatedTotalWidth = getEstimatedTotalWidth(
+    //     { columnCount },
+    //     virtualizationParams.current
+    //   );
+
+    // The scrollbar size should be considered when scrolling an item into view,
+    // to ensure it's fully visible.
+    // But we only need to account for its size when it's actually visible.
+
+    // const horizontalScrollbarSize =
+    //   estimatedTotalWidth > width ? scrollbarSize : 0;
+    // const verticalScrollbarSize =
+    //   estimatedTotalHeight > height ? scrollbarSize : 0;
+
+    // const scrollLeft =
+    //   columnIndex !== undefined
+    //     ? getOffsetForColumnAndAlignment(
+    //         width,
+    //         height,
+    //         columnWidth,
+    //         rowHeight,
+    //         columnIndex,
+    //         align,
+    //         scrollLeft,
+    //         virtualizationParams.current,
+    //         verticalScrollbarSize
+    //       )
+    //     : scrollLeft;
+    // const scrollTop =
+    //   rowIndex !== undefined
+    //     ? getOffsetForRowAndAlignment(
+    //         width,
+    //         height,
+    //         columnWidth,
+    //         rowHeight,
+    //         rowIndex,
+    //         align,
+    //         scrollTop,
+    //         virtualizationParams.current,
+    //         horizontalScrollbarSize
+    //       )
+    //     : scrollTop;
+    //   scrollTo({ scrollLeft, scrollTop });
+    // };
     useImperativeHandle(ref, () => {
       return {
         scrollTo,
-        scrollToItem,
+        //scrollToItem,
       };
     });
 
-    useEffect(() => {
-      if (outerRef.current != null) {
-        const outerRefCurrent = outerRef.current;
-        if (typeof initialScrollLeft === "number") {
-          outerRefCurrent.scrollLeft = initialScrollLeft;
-        }
-        if (typeof initialScrollTop === "number") {
-          outerRefCurrent.scrollTop = initialScrollTop;
-        }
-      }
-
-      callPropsCallbacks();
-      return () => {
-        if (resetIsScrollingTimeoutId.current) {
-          cancelTimeout(resetIsScrollingTimeoutId.current);
-        }
-      };
-    }, []);
-
-    useEffect(() => {
-      const outerRefCurrent = outerRef.current;
-
-      if (scrollUpdateWasRequested && outerRefCurrent != null) {
-        if (direction === "rtl") {
-          switch (getRTLOffsetType()) {
-            case "negative":
-              outerRefCurrent.scrollLeft = -scrollLeft;
-              break;
-            case "positive-ascending":
-              outerRefCurrent.scrollLeft = scrollLeft;
-              break;
-            default:
-              const { clientWidth, scrollWidth } = outerRefCurrent;
-              outerRefCurrent.scrollLeft =
-                scrollWidth - clientWidth - scrollLeft;
-              break;
-          }
-        } else {
-          outerRefCurrent.scrollLeft = Math.max(0, scrollLeft);
-        }
-
-        outerRefCurrent.scrollTop = Math.max(0, scrollTop);
-      }
-
-      callPropsCallbacks();
-    }, [scrollUpdateWasRequested, scrollLeft, scrollTop]);
-
-    const callOnItemsRendered = (
-      overscanColumnStartIndex,
-      overscanColumnStopIndex,
-      overscanRowStartIndex,
-      overscanRowStopIndex,
-      visibleColumnStartIndex,
-      visibleColumnStopIndex,
-      visibleRowStartIndex,
-      visibleRowStopIndex
-    ) =>
-      onItemsRendered({
-        rowStartIndex: overscanRowStartIndex,
-        rowStopIndex: overscanColumnStartIndex,
+    const callOnItemsRendered = useCallback(
+      (
         overscanColumnStartIndex,
         overscanColumnStopIndex,
         overscanRowStartIndex,
@@ -217,9 +182,23 @@ const VariableSizeGrid = memo(
         visibleColumnStartIndex,
         visibleColumnStopIndex,
         visibleRowStartIndex,
-        visibleRowStopIndex,
-      });
-    const callPropsCallbacks = () => {
+        visibleRowStopIndex
+      ) =>
+        onItemsRendered({
+          rowStartIndex: overscanRowStartIndex,
+          rowStopIndex: overscanColumnStartIndex,
+          overscanColumnStartIndex,
+          overscanColumnStopIndex,
+          overscanRowStartIndex,
+          overscanRowStopIndex,
+          visibleColumnStartIndex,
+          visibleColumnStopIndex,
+          visibleRowStartIndex,
+          visibleRowStopIndex,
+        }),
+      [onItemsRendered]
+    );
+    const callPropsCallbacks = useCallback(() => {
       if (typeof onItemsRendered === "function") {
         if (columnCount > 0 && rowCount > 0) {
           const [
@@ -269,26 +248,77 @@ const VariableSizeGrid = memo(
           );
         }
       }
-    };
+    }, [
+      callOnItemsRendered,
+      columnCount,
+      columnWidth,
+      height,
+      horizontalScrollDirection,
+      isScrolling,
+      onItemsRendered,
+      overscanColumnCount,
+      overscanCount,
+      overscanRowCount,
+      rowCount,
+      rowHeight,
+      scrollLeft,
+      scrollTop,
+      verticalScrollDirection,
+      width,
+    ]);
 
-    const resetIsScrollingDebounced = () => {
-      if (resetIsScrollingTimeoutId.current) {
-        cancelTimeout(resetIsScrollingTimeoutId.current);
+    useEffect(() => {
+      if (outerRef.current != null) {
+        const outerRefCurrent = outerRef.current;
+        if (typeof initialScrollLeft === "number") {
+          outerRefCurrent.scrollLeft = initialScrollLeft;
+        }
+        if (typeof initialScrollTop === "number") {
+          outerRefCurrent.scrollTop = initialScrollTop;
+        }
       }
 
-      resetIsScrollingTimeoutId.current = requestTimeout(
-        resetIsScrolling,
-        IS_SCROLLING_DEBOUNCE_INTERVAL
-      );
-    };
+      callPropsCallbacks();
+      return () => {
+        if (resetIsScrollingTimeoutId.current) {
+          cancelTimeout(resetIsScrollingTimeoutId.current);
+        }
+      };
+    }, [callPropsCallbacks, initialScrollLeft, initialScrollTop]);
 
-    const resetIsScrolling = () => {
-      resetIsScrollingTimeoutId.current = null;
+    useEffect(() => {
+      const outerRefCurrent = outerRef.current;
 
-      onAction({ type: ACTION_TYPES.SCROLL_STOP });
-      // Clear style cache after state update has been committed and the size of cache has exceeded its max value.
-      setCache({ type: ACTION_TYPES.CLEAR_CACHE });
-    };
+      if (scrollUpdateWasRequested && outerRefCurrent != null) {
+        if (direction === "rtl") {
+          switch (getRTLOffsetType()) {
+            case "negative":
+              outerRefCurrent.scrollLeft = -scrollLeft;
+              break;
+            case "positive-ascending":
+              outerRefCurrent.scrollLeft = scrollLeft;
+              break;
+            default:
+              const { clientWidth, scrollWidth } = outerRefCurrent;
+              outerRefCurrent.scrollLeft =
+                scrollWidth - clientWidth - scrollLeft;
+              break;
+          }
+        } else {
+          outerRefCurrent.scrollLeft = Math.max(0, scrollLeft);
+        }
+
+        outerRefCurrent.scrollTop = Math.max(0, scrollTop);
+      }
+
+      callPropsCallbacks();
+    }, [
+      scrollUpdateWasRequested,
+      scrollLeft,
+      scrollTop,
+      callPropsCallbacks,
+      direction,
+    ]);
 
     const [columnStartIndex, columnStopIndex] = getHorizontalRangeToRender({
       columnCount,
@@ -355,7 +385,7 @@ const VariableSizeGrid = memo(
               columnCount,
             })}
             role="row"
-            aria-rowindex={`${rowIndex + 1}`}
+            aria-rowindex={rowIndex + 1}
           />
         );
       }
