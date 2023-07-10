@@ -109,3 +109,62 @@ export const getIndex = (segtree, offset) => {
 export const setSize = (segtree, index, size) => {
   replaceElement(0, segtree.length / 4 - 1, 1, index, size, segtree);
 };
+
+// const scrollToItem = ({ align = "auto", columnIndex, rowIndex }) => {
+//   const scrollbarSize = getScrollbarSize();
+
+//   if (columnIndex !== undefined) {
+//     columnIndex = Math.max(0, Math.min(columnIndex, columnCount - 1));
+//   }
+//   if (rowIndex !== undefined) {
+//     rowIndex = Math.max(0, Math.min(rowIndex, rowCount - 1));
+//   }
+
+//   const estimatedTotalHeight = getEstimatedTotalHeight(
+//     { rowCount },
+//     virtualizationParams.current
+//   );
+//   const estimatedTotalWidth = getEstimatedTotalWidth(
+//     { columnCount },
+//     virtualizationParams.current
+//   );
+
+// The scrollbar size should be considered when scrolling an item into view,
+// to ensure it's fully visible.
+// But we only need to account for its size when it's actually visible.
+
+// const horizontalScrollbarSize =
+//   estimatedTotalWidth > width ? scrollbarSize : 0;
+// const verticalScrollbarSize =
+//   estimatedTotalHeight > height ? scrollbarSize : 0;
+
+// const scrollLeft =
+//   columnIndex !== undefined
+//     ? getOffsetForColumnAndAlignment(
+//         width,
+//         height,
+//         columnWidth,
+//         rowHeight,
+//         columnIndex,
+//         align,
+//         scrollLeft,
+//         virtualizationParams.current,
+//         verticalScrollbarSize
+//       )
+//     : scrollLeft;
+// const scrollTop =
+//   rowIndex !== undefined
+//     ? getOffsetForRowAndAlignment(
+//         width,
+//         height,
+//         columnWidth,
+//         rowHeight,
+//         rowIndex,
+//         align,
+//         scrollTop,
+//         virtualizationParams.current,
+//         horizontalScrollbarSize
+//       )
+//     : scrollTop;
+//   scrollTo({ scrollLeft, scrollTop });
+// };

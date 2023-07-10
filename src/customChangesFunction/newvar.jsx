@@ -6,8 +6,6 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
-//import { useLatestCallback } from "./hooks/useLatestCallback";
-import { useLatest } from "./hooks/useLatest";
 import { cancelTimeout, requestTimeout } from "./helpers/timer";
 import { getRTLOffsetType } from "./helpers/domHelpers";
 import {
@@ -32,7 +30,6 @@ const IS_SCROLLING_DEBOUNCE_INTERVAL = 150;
 
 const VariableSizeGrid = memo(
   forwardRef((props, ref) => {
-    const latestPropsRef = useLatest(props);
     const {
       initialScrollLeft,
       initialScrollTop,
@@ -50,7 +47,10 @@ const VariableSizeGrid = memo(
       verticalScrollDirection,
       //children
       //style
-    } = latestPropsRef.current;
+    } = props;
+
+    const latestPropsRef = useLatest(props);
+
     const {
       isScrolling,
       horizontalScrollDirection,
@@ -66,21 +66,16 @@ const VariableSizeGrid = memo(
     const { getCache, setCache } = useCache();
     const resetIsScrollingTimeoutId = useRef(null);
     const virtualizationParams = useRef(initInstanceProps(props));
+
     const outerRef = useRef(null);
-    // const resetIsScrollingRef = useRef(
-    //   (resetIsScrollingTimeoutId, onAction, clearCache) => {
-    //     resetIsScrollingTimeoutId.current = null;
-    //     onAction({ type: ACTION_TYPES.SCROLL_STOP });
-    //     clearCache();
-    //   }
-    // );
+
     const resetIsScrolling = useCallback(() => {
       resetIsScrollingTimeoutId.current = null;
 
       onAction({ type: ACTION_TYPES.SCROLL_STOP });
       // Clear style cache after state update has been committed and the size of cache has exceeded its max value.
       setCache({ type: ACTION_TYPES.CLEAR_CACHE });
-    }, []);
+    }, [onAction, setCache]);
 
     const resetIsScrollingDebounced = useCallback(() => {
       if (resetIsScrollingTimeoutId.current) {
@@ -91,29 +86,22 @@ const VariableSizeGrid = memo(
         resetIsScrolling,
         IS_SCROLLING_DEBOUNCE_INTERVAL
       );
-    }, []);
+    }, [resetIsScrolling]);
 
-    const scrollTo = useCallback(({ scrollLeft, scrollTop }) => {
-      if (scrollLeft !== undefined) {
-        scrollLeft = Math.max(0, scrollLeft);
-      }
-      if (scrollTop !== undefined) {
-        scrollTop = Math.max(0, scrollTop);
-      }
+    const scrollTo = useCallback(
+      ({ scrollLeft, scrollTop }) => {
+        if (scrollLeft !== undefined) {
+          scrollLeft = Math.max(0, scrollLeft);
+        }
+        if (scrollTop !== undefined) {
+          scrollTop = Math.max(0, scrollTop);
+        }
 
-      onAction({ type: ACTION_TYPES.REQUEST_SCROLL_UPDATE });
-      onAction({
-        type: ACTION_TYPES.SET_SCROLL_LEFT,
-        payload: scrollLeft === undefined ? 0 : scrollLeft,
-      });
-      onAction({
-        type: ACTION_TYPES.SET_SCROLL_TOP,
-        payload: scrollTop === undefined ? 0 : scrollTop,
-      });
-
-      onAction({ type: ACTION_TYPES.SCROLL_START });
-      resetIsScrollingDebounced();
-    }, []);
+        onAction({ type: ACTION_TYPES.SCROLL_START });
+        resetIsScrollingDebounced();
+      },
+      [onAction, resetIsScrollingDebounced]
+    );
 
     useImperativeHandle(ref, () => {
       return {
@@ -145,10 +133,27 @@ const VariableSizeGrid = memo(
           visibleRowStartIndex,
           visibleRowStopIndex,
         }),
-      [onItemsRendered]
+      [latestPropsRef]
     );
-
     const callPropsCallbacks = useCallback(() => {
+      const {
+        columnCount,
+        columnWidth,
+        height,
+        horizontalScrollDirection,
+        isScrolling,
+        onItemsRendered,
+        overscanColumnCount,
+        overscanCount,
+        overscanRowCount,
+        rowCount,
+        rowHeight,
+        scrollLeft,
+        scrollTop,
+        verticalScrollDirection,
+        width,
+      } = latestPropsRef.current;
+
       if (typeof onItemsRendered === "function") {
         if (columnCount > 0 && rowCount > 0) {
           const [
@@ -198,24 +203,7 @@ const VariableSizeGrid = memo(
           );
         }
       }
-    }, [
-      callOnItemsRendered,
-      columnCount,
-      columnWidth,
-      height,
-      horizontalScrollDirection,
-      isScrolling,
-      onItemsRendered,
-      overscanColumnCount,
-      overscanCount,
-      overscanRowCount,
-      rowCount,
-      rowHeight,
-      scrollLeft,
-      scrollTop,
-      verticalScrollDirection,
-      width,
-    ]);
+    }, [callOnItemsRendered, latestPropsRef]);
 
     useEffect(() => {
       if (outerRef.current != null) {
@@ -327,7 +315,10 @@ const VariableSizeGrid = memo(
             key={`${rowIndex}`}
             style={getRowStyle({
               rowIndex,
-              rowStyleCache: getCache({ type: ACTION_TYPES.GET_ROW_STYLE }),
+              rowStyleCache: getCache({
+                type: ACTION_TYPES.GET_ROW_STYLE,
+                rowIndex,
+              }),
               isScrolling,
               virtualizationParams,
               columnWidth,
