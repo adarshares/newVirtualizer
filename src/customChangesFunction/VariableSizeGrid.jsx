@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
+import useWhyDidYouUpdate from "./hooks/useWhyDidYouUpdate";
 import { useLatestCallback } from "./hooks/useLatestCallback";
 import { cancelTimeout, requestTimeout } from "./helpers/timer";
 import { getRTLOffsetType } from "./helpers/domHelpers";
@@ -84,28 +85,33 @@ const VariableSizeGrid = memo(
       );
     }, [resetIsScrolling]);
 
-    const scrollTo = useLatestCallback(({ scrollLeft, scrollTop }) => {
-      if (scrollLeft !== undefined) {
-        scrollLeft = Math.max(0, scrollLeft);
-      }
-      if (scrollTop !== undefined) {
-        scrollTop = Math.max(0, scrollTop);
-      }
+    useWhyDidYouUpdate("resetIsScrollingDebounced", { resetIsScrolling });
 
-      onAction({ type: ACTION_TYPES.REQUEST_SCROLL_UPDATE });
-      onAction({
-        type: ACTION_TYPES.SET_SCROLL_LEFT,
-        payload: scrollLeft === undefined ? 0 : scrollLeft,
-      });
-      onAction({
-        type: ACTION_TYPES.SET_SCROLL_TOP,
-        payload: scrollTop === undefined ? 0 : scrollTop,
-      });
+    const scrollTo = useCallback(
+      ({ scrollLeft, scrollTop }) => {
+        if (scrollLeft !== undefined) {
+          scrollLeft = Math.max(0, scrollLeft);
+        }
+        if (scrollTop !== undefined) {
+          scrollTop = Math.max(0, scrollTop);
+        }
 
-      onAction({ type: ACTION_TYPES.SCROLL_START });
-      resetIsScrollingDebounced();
-    });
+        onAction({ type: ACTION_TYPES.REQUEST_SCROLL_UPDATE });
+        onAction({
+          type: ACTION_TYPES.SET_SCROLL_LEFT,
+          payload: scrollLeft === undefined ? 0 : scrollLeft,
+        });
+        onAction({
+          type: ACTION_TYPES.SET_SCROLL_TOP,
+          payload: scrollTop === undefined ? 0 : scrollTop,
+        });
 
+        onAction({ type: ACTION_TYPES.SCROLL_START });
+        resetIsScrollingDebounced();
+      },
+      [onAction, resetIsScrollingDebounced]
+    );
+    useWhyDidYouUpdate("scrollTo", { onAction, resetIsScrollingDebounced });
     // const scrollToItem = ({ align = "auto", columnIndex, rowIndex }) => {
     //   const scrollbarSize = getScrollbarSize();
 
@@ -171,7 +177,7 @@ const VariableSizeGrid = memo(
       };
     });
 
-    const callOnItemsRendered = useLatestCallback(
+    const callOnItemsRendered = useCallback(
       (
         overscanColumnStartIndex,
         overscanColumnStopIndex,
@@ -193,9 +199,11 @@ const VariableSizeGrid = memo(
           visibleColumnStopIndex,
           visibleRowStartIndex,
           visibleRowStopIndex,
-        })
+        }),
+      [onItemsRendered]
     );
-    const callPropsCallbacks = useLatestCallback(() => {
+    useWhyDidYouUpdate("callOnItemsRendered", { onItemsRendered });
+    const callPropsCallbacks = useCallback(() => {
       if (typeof onItemsRendered === "function") {
         if (columnCount > 0 && rowCount > 0) {
           const [
@@ -245,8 +253,42 @@ const VariableSizeGrid = memo(
           );
         }
       }
+    }, [
+      callOnItemsRendered,
+      columnCount,
+      columnWidth,
+      height,
+      horizontalScrollDirection,
+      isScrolling,
+      onItemsRendered,
+      overscanColumnCount,
+      overscanCount,
+      overscanRowCount,
+      rowCount,
+      rowHeight,
+      scrollLeft,
+      scrollTop,
+      verticalScrollDirection,
+      width,
+    ]);
+    useWhyDidYouUpdate("callPropsCallback", {
+      callOnItemsRendered,
+      columnCount,
+      columnWidth,
+      height,
+      horizontalScrollDirection,
+      isScrolling,
+      onItemsRendered,
+      overscanColumnCount,
+      overscanCount,
+      overscanRowCount,
+      rowCount,
+      rowHeight,
+      scrollLeft,
+      scrollTop,
+      verticalScrollDirection,
+      width,
     });
-
     useEffect(() => {
       if (outerRef.current != null) {
         const outerRefCurrent = outerRef.current;
