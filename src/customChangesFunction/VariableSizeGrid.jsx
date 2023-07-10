@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
+import { useLatestCallback } from "./hooks/useLatestCallback";
 import { cancelTimeout, requestTimeout } from "./helpers/timer";
 import { getRTLOffsetType } from "./helpers/domHelpers";
 import {
@@ -83,30 +84,27 @@ const VariableSizeGrid = memo(
       );
     }, [resetIsScrolling]);
 
-    const scrollTo = useCallback(
-      ({ scrollLeft, scrollTop }) => {
-        if (scrollLeft !== undefined) {
-          scrollLeft = Math.max(0, scrollLeft);
-        }
-        if (scrollTop !== undefined) {
-          scrollTop = Math.max(0, scrollTop);
-        }
+    const scrollTo = useLatestCallback(({ scrollLeft, scrollTop }) => {
+      if (scrollLeft !== undefined) {
+        scrollLeft = Math.max(0, scrollLeft);
+      }
+      if (scrollTop !== undefined) {
+        scrollTop = Math.max(0, scrollTop);
+      }
 
-        onAction({ type: ACTION_TYPES.REQUEST_SCROLL_UPDATE });
-        onAction({
-          type: ACTION_TYPES.SET_SCROLL_LEFT,
-          payload: scrollLeft === undefined ? 0 : scrollLeft,
-        });
-        onAction({
-          type: ACTION_TYPES.SET_SCROLL_TOP,
-          payload: scrollTop === undefined ? 0 : scrollTop,
-        });
+      onAction({ type: ACTION_TYPES.REQUEST_SCROLL_UPDATE });
+      onAction({
+        type: ACTION_TYPES.SET_SCROLL_LEFT,
+        payload: scrollLeft === undefined ? 0 : scrollLeft,
+      });
+      onAction({
+        type: ACTION_TYPES.SET_SCROLL_TOP,
+        payload: scrollTop === undefined ? 0 : scrollTop,
+      });
 
-        onAction({ type: ACTION_TYPES.SCROLL_START });
-        resetIsScrollingDebounced();
-      },
-      [onAction, resetIsScrollingDebounced]
-    );
+      onAction({ type: ACTION_TYPES.SCROLL_START });
+      resetIsScrollingDebounced();
+    });
 
     // const scrollToItem = ({ align = "auto", columnIndex, rowIndex }) => {
     //   const scrollbarSize = getScrollbarSize();
@@ -173,7 +171,7 @@ const VariableSizeGrid = memo(
       };
     });
 
-    const callOnItemsRendered = useCallback(
+    const callOnItemsRendered = useLatestCallback(
       (
         overscanColumnStartIndex,
         overscanColumnStopIndex,
@@ -195,10 +193,9 @@ const VariableSizeGrid = memo(
           visibleColumnStopIndex,
           visibleRowStartIndex,
           visibleRowStopIndex,
-        }),
-      [onItemsRendered]
+        })
     );
-    const callPropsCallbacks = useCallback(() => {
+    const callPropsCallbacks = useLatestCallback(() => {
       if (typeof onItemsRendered === "function") {
         if (columnCount > 0 && rowCount > 0) {
           const [
@@ -248,24 +245,7 @@ const VariableSizeGrid = memo(
           );
         }
       }
-    }, [
-      callOnItemsRendered,
-      columnCount,
-      columnWidth,
-      height,
-      horizontalScrollDirection,
-      isScrolling,
-      onItemsRendered,
-      overscanColumnCount,
-      overscanCount,
-      overscanRowCount,
-      rowCount,
-      rowHeight,
-      scrollLeft,
-      scrollTop,
-      verticalScrollDirection,
-      width,
-    ]);
+    });
 
     useEffect(() => {
       if (outerRef.current != null) {
