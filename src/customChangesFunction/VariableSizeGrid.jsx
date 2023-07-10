@@ -253,41 +253,9 @@ const VariableSizeGrid = memo(
           );
         }
       }
-    }, [
-      callOnItemsRendered,
-      columnCount,
-      columnWidth,
-      height,
-      horizontalScrollDirection,
-      isScrolling,
-      onItemsRendered,
-      overscanColumnCount,
-      overscanCount,
-      overscanRowCount,
-      rowCount,
-      rowHeight,
-      scrollLeft,
-      scrollTop,
-      verticalScrollDirection,
-      width,
-    ]);
+    }, [callOnItemsRendered, isScrolling]);
     useWhyDidYouUpdate("callPropsCallback", {
-      callOnItemsRendered,
-      columnCount,
-      columnWidth,
-      height,
-      horizontalScrollDirection,
       isScrolling,
-      onItemsRendered,
-      overscanColumnCount,
-      overscanCount,
-      overscanRowCount,
-      rowCount,
-      rowHeight,
-      scrollLeft,
-      scrollTop,
-      verticalScrollDirection,
-      width,
     });
     useEffect(() => {
       if (outerRef.current != null) {
